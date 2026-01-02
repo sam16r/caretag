@@ -69,16 +69,16 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0 shadow-xl">
-      <SidebarHeader className="border-b border-sidebar-border/50 px-4 py-5">
+    <Sidebar collapsible="icon" className="border-r border-border/60 bg-card">
+      <SidebarHeader className="border-b border-border/60 px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 shadow-lg shadow-sidebar-primary/30 flex-shrink-0">
-            <Activity className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/25 flex-shrink-0">
+            <Activity className="h-5 w-5 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-sidebar-foreground tracking-tight">CareTag</span>
-              <span className="text-xs text-sidebar-foreground/50 capitalize font-medium">{role || 'User'} Portal</span>
+              <span className="text-lg font-bold text-foreground tracking-tight">CareTag</span>
+              <span className="text-xs text-muted-foreground capitalize font-medium">{role || 'User'} Portal</span>
             </div>
           )}
         </div>
@@ -100,10 +100,10 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className={cn(
                         'transition-all duration-200 rounded-xl h-11',
-                        isActive && !isEmergency && 'bg-sidebar-primary/15 text-sidebar-primary shadow-sm',
+                        isActive && !isEmergency && 'bg-primary/10 text-primary shadow-sm',
                         isEmergency && 'text-emergency hover:text-emergency',
-                        isActive && isEmergency && 'bg-emergency/15 text-emergency',
-                        !isActive && !isEmergency && 'hover:bg-sidebar-accent/60'
+                        isActive && isEmergency && 'bg-emergency/10 text-emergency',
+                        !isActive && !isEmergency && 'hover:bg-muted'
                       )}
                     >
                       <button
@@ -113,9 +113,9 @@ export function AppSidebar() {
                         <item.icon className={cn(
                           'h-5 w-5 transition-colors',
                           isEmergency && 'text-emergency',
-                          isActive && !isEmergency && 'text-sidebar-primary'
+                          isActive && !isEmergency && 'text-primary'
                         )} />
-                        <span className="font-medium">{item.title}</span>
+                        <span className="font-medium text-foreground">{item.title}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -126,22 +126,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/50 p-4">
+      <SidebarFooter className="border-t border-border/60 p-4">
         <div className={cn(
-          'flex items-center gap-3 p-2 rounded-xl bg-sidebar-accent/40',
+          'flex items-center gap-3 p-2 rounded-xl bg-muted/50',
           collapsed && 'justify-center p-2'
         )}>
-          <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
-            <AvatarFallback className="bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground text-sm font-semibold">
+          <Avatar className="h-9 w-9 ring-2 ring-border">
+            <AvatarFallback className="gradient-primary text-primary-foreground text-sm font-semibold">
               {getInitials(user?.email || '')}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex flex-1 flex-col min-w-0">
-              <span className="text-sm font-semibold text-sidebar-foreground truncate">
+              <span className="text-sm font-semibold text-foreground truncate">
                 {user?.email?.split('@')[0]}
               </span>
-              <span className="text-xs text-sidebar-foreground/50 capitalize font-medium">
+              <span className="text-xs text-muted-foreground capitalize font-medium">
                 {role || 'User'}
               </span>
             </div>
@@ -151,7 +151,7 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               onClick={handleSignOut}
-              className="h-8 w-8 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <LogOut className="h-4 w-4" />
             </Button>
