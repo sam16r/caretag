@@ -32,18 +32,18 @@ export function AppHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-card px-6">
-      <SidebarTrigger className="-ml-2" />
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border/50 bg-background/95 backdrop-blur-md px-6">
+      <SidebarTrigger className="-ml-2 hover:bg-muted" />
 
       {/* Search */}
       <form onSubmit={handleSearch} className="flex-1 max-w-xl">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
             placeholder="Search patients by name, CareTag ID, or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 bg-muted/50"
+            className="pl-10 pr-4 h-10 bg-muted/50 border-transparent hover:border-border focus:border-primary focus:bg-background transition-all rounded-xl"
           />
         </div>
       </form>
@@ -53,7 +53,7 @@ export function AppHeader() {
         variant="outline"
         size="sm"
         onClick={() => navigate('/patients?scan=true')}
-        className="gap-2 hidden md:flex"
+        className="gap-2 hidden md:flex rounded-xl h-10 px-4 shadow-sm hover:shadow-md transition-shadow"
       >
         <ScanLine className="h-4 w-4" />
         Scan CareTag
@@ -62,18 +62,19 @@ export function AppHeader() {
       {/* Notifications */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl hover:bg-muted">
             <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-emergency">
+            <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 p-0 flex items-center justify-center text-xs bg-emergency border-2 border-background shadow-sm">
               3
             </Badge>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuContent align="end" className="w-80 p-2 rounded-xl shadow-xl border-border/50">
+          <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">Notifications</p>
           {notifications.map((notification) => (
             <DropdownMenuItem
               key={notification.id}
-              className="flex flex-col items-start gap-1 p-3 cursor-pointer"
+              className="flex flex-col items-start gap-1 p-3 cursor-pointer rounded-lg focus:bg-muted"
             >
               <div className="flex items-center gap-2">
                 <div
@@ -85,7 +86,7 @@ export function AppHeader() {
                       : 'bg-primary'
                   }`}
                 />
-                <span className="font-medium">{notification.title}</span>
+                <span className="font-semibold text-sm">{notification.title}</span>
               </div>
               <span className="text-sm text-muted-foreground pl-4">
                 {notification.message}
@@ -100,6 +101,7 @@ export function AppHeader() {
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="h-10 w-10 rounded-xl hover:bg-muted"
       >
         {theme === 'dark' ? (
           <Sun className="h-5 w-5" />

@@ -11,9 +11,10 @@ import {
   User,
   ArrowRight,
   Stethoscope,
+  TrendingUp,
 } from 'lucide-react';
 
-// Mock data - will be replaced with real data from Supabase
+// Mock data
 const todayAppointments = [
   { id: '1', patientName: 'Sarah Johnson', time: '09:00 AM', reason: 'Follow-up', status: 'upcoming' },
   { id: '2', patientName: 'Michael Chen', time: '10:30 AM', reason: 'Consultation', status: 'in_progress' },
@@ -46,72 +47,94 @@ export function DoctorDashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, Doctor</p>
+          <h1 className="text-3xl font-bold tracking-tight">Good Morning, Doctor</h1>
+          <p className="text-muted-foreground mt-1">Here's your overview for today</p>
         </div>
-        <Button onClick={() => navigate('/emergency')} variant="destructive" className="gap-2">
+        <Button 
+          onClick={() => navigate('/emergency')} 
+          className="gap-2 bg-emergency hover:bg-emergency/90 shadow-lg shadow-emergency/25"
+        >
           <AlertTriangle className="h-4 w-4" />
           Emergency Mode
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/appointments')}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card 
+          className="card-interactive stat-glow-primary cursor-pointer group"
+          onClick={() => navigate('/appointments')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Today's Appointments</p>
-                <p className="text-3xl font-bold text-foreground">8</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Today's Appointments</p>
+                <p className="text-4xl font-bold tracking-tight">8</p>
+                <div className="flex items-center gap-1 text-success text-sm font-medium">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span>2 more than yesterday</span>
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-primary" />
+              <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-105 transition-transform">
+                <Calendar className="h-7 w-7 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/patients')}>
+        <Card 
+          className="card-interactive stat-glow-accent cursor-pointer group"
+          onClick={() => navigate('/patients')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Patients Seen Today</p>
-                <p className="text-3xl font-bold text-foreground">12</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Patients Seen</p>
+                <p className="text-4xl font-bold tracking-tight">12</p>
+                <p className="text-sm text-muted-foreground">Today's consultations</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <User className="h-6 w-6 text-accent" />
+              <div className="h-14 w-14 rounded-2xl gradient-accent flex items-center justify-center shadow-lg shadow-accent/25 group-hover:scale-105 transition-transform">
+                <User className="h-7 w-7 text-accent-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/emergency')}>
+        <Card 
+          className="card-interactive stat-glow-emergency cursor-pointer group border-emergency/20"
+          onClick={() => navigate('/emergency')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Emergency Alerts</p>
-                <p className="text-3xl font-bold text-emergency">2</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Emergency Alerts</p>
+                <p className="text-4xl font-bold tracking-tight text-emergency">2</p>
+                <p className="text-sm text-emergency font-medium">Requires attention</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-emergency/10 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-emergency" />
+              <div className="h-14 w-14 rounded-2xl bg-emergency flex items-center justify-center shadow-lg shadow-emergency/30 group-hover:scale-105 transition-transform">
+                <AlertTriangle className="h-7 w-7 text-emergency-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/prescriptions')}>
+        <Card 
+          className="card-interactive stat-glow-success cursor-pointer group"
+          onClick={() => navigate('/prescriptions')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Prescriptions Today</p>
-                <p className="text-3xl font-bold text-foreground">5</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Prescriptions</p>
+                <p className="text-4xl font-bold tracking-tight">5</p>
+                <p className="text-sm text-muted-foreground">Issued today</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-                <Stethoscope className="h-6 w-6 text-success" />
+              <div className="h-14 w-14 rounded-2xl bg-success flex items-center justify-center shadow-lg shadow-success/25 group-hover:scale-105 transition-transform">
+                <Stethoscope className="h-7 w-7 text-success-foreground" />
               </div>
             </div>
           </CardContent>
@@ -120,37 +143,40 @@ export function DoctorDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Appointments */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
+        <Card className="card-elevated">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Clock className="h-4.5 w-4.5 text-primary" />
+              </div>
               Today's Appointments
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')} className="text-primary hover:text-primary">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {todayAppointments.map((apt) => (
+            {todayAppointments.map((apt, index) => (
               <div
                 key={apt.id}
                 onClick={() => navigate(`/appointments/${apt.id}`)}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{apt.patientName}</p>
+                    <p className="font-semibold">{apt.patientName}</p>
                     <p className="text-sm text-muted-foreground">{apt.reason}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">{apt.time}</p>
+                  <p className="text-sm font-semibold">{apt.time}</p>
                   <Badge
                     variant={apt.status === 'in_progress' ? 'default' : 'secondary'}
-                    className={apt.status === 'in_progress' ? 'bg-success' : ''}
+                    className={apt.status === 'in_progress' ? 'bg-success text-success-foreground' : ''}
                   >
                     {apt.status === 'in_progress' ? 'In Progress' : 'Upcoming'}
                   </Badge>
@@ -161,35 +187,38 @@ export function DoctorDashboard() {
         </Card>
 
         {/* Recent Patients */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
+        <Card className="card-elevated">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                <User className="h-4.5 w-4.5 text-accent" />
+              </div>
               Recent Patients
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/patients')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/patients')} className="text-primary hover:text-primary">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentPatients.map((patient) => (
+            {recentPatients.map((patient, index) => (
               <div
                 key={patient.id}
                 onClick={() => navigate(`/patients/${patient.id}`)}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-accent" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{patient.name}</p>
-                    <p className="text-sm text-muted-foreground">{patient.caretagId}</p>
+                    <p className="font-semibold">{patient.name}</p>
+                    <p className="text-sm text-muted-foreground font-mono">{patient.caretagId}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">{patient.lastVisit}</p>
-                  <Badge variant="outline">{patient.condition}</Badge>
+                  <Badge variant="outline" className="font-medium">{patient.condition}</Badge>
                 </div>
               </div>
             ))}
@@ -197,38 +226,41 @@ export function DoctorDashboard() {
         </Card>
 
         {/* Emergency Alerts */}
-        <Card className="border-emergency/30">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-emergency">
-              <AlertTriangle className="h-5 w-5" />
+        <Card className="card-elevated border-emergency/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold text-emergency">
+              <div className="h-8 w-8 rounded-lg bg-emergency/10 flex items-center justify-center">
+                <AlertTriangle className="h-4.5 w-4.5 text-emergency" />
+              </div>
               Emergency Alerts
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/emergency')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/emergency')} className="text-emergency hover:text-emergency">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {emergencyAlerts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">No emergency alerts</p>
+              <p className="text-center text-muted-foreground py-8">No emergency alerts</p>
             ) : (
-              emergencyAlerts.map((alert) => (
+              emergencyAlerts.map((alert, index) => (
                 <div
                   key={alert.id}
                   onClick={() => navigate('/emergency')}
-                  className="flex items-center justify-between p-3 rounded-lg bg-emergency/5 hover:bg-emergency/10 cursor-pointer transition-colors border border-emergency/20"
+                  className="flex items-center justify-between p-4 rounded-xl bg-emergency/5 hover:bg-emergency/10 cursor-pointer transition-all duration-200 border border-emergency/15 hover:border-emergency/25 animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-emergency/20 flex items-center justify-center">
+                  <div className="flex items-center gap-4">
+                    <div className="h-11 w-11 rounded-xl bg-emergency/15 flex items-center justify-center">
                       <AlertTriangle className="h-5 w-5 text-emergency" />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{alert.patientName}</p>
-                      <p className="text-sm text-emergency">{alert.alert}</p>
+                      <p className="font-semibold">{alert.patientName}</p>
+                      <p className="text-sm text-emergency font-medium">{alert.alert}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">{alert.time}</p>
-                    <Badge variant="destructive">
+                    <Badge variant="destructive" className="font-semibold">
                       {alert.severity === 'high' ? 'Critical' : 'Warning'}
                     </Badge>
                   </div>
@@ -239,35 +271,38 @@ export function DoctorDashboard() {
         </Card>
 
         {/* Critical Vitals */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              Critical Vitals Alerts
+        <Card className="card-elevated">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                <Heart className="h-4.5 w-4.5 text-warning" />
+              </div>
+              Critical Vitals
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/devices')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/devices')} className="text-primary hover:text-primary">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {criticalVitals.map((vital) => (
+            {criticalVitals.map((vital, index) => (
               <div
                 key={vital.id}
                 onClick={() => navigate(`/patients/${vital.id}`)}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-warning/10 flex items-center justify-center">
                     <Activity className="h-5 w-5 text-warning" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{vital.patientName}</p>
+                    <p className="font-semibold">{vital.patientName}</p>
                     <p className="text-sm text-muted-foreground">{vital.metric}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-warning">{vital.value}</p>
-                  <Badge variant="outline" className="text-warning border-warning">
+                  <p className="text-xl font-bold text-warning">{vital.value}</p>
+                  <Badge variant="outline" className="text-warning border-warning/40 font-medium">
                     {vital.status}
                   </Badge>
                 </div>
@@ -278,27 +313,30 @@ export function DoctorDashboard() {
       </div>
 
       {/* Pending Follow-ups */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
+      <Card className="card-elevated">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Calendar className="h-4.5 w-4.5 text-primary" />
+            </div>
             Pending Follow-ups
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')} className="text-primary hover:text-primary">
             View all <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingFollowups.map((followup) => (
+            {pendingFollowups.map((followup, index) => (
               <div
                 key={followup.id}
                 onClick={() => navigate(`/patients/${followup.id}`)}
-                className="p-4 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="p-5 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <p className="font-medium text-foreground">{followup.patientName}</p>
+                <p className="font-semibold">{followup.patientName}</p>
                 <p className="text-sm text-muted-foreground mt-1">{followup.reason}</p>
-                <p className="text-xs text-muted-foreground mt-2">Last visit: {followup.lastVisit}</p>
+                <p className="text-xs text-muted-foreground mt-3 font-medium">Last visit: {followup.lastVisit}</p>
               </div>
             ))}
           </div>

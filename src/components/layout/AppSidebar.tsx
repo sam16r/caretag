@@ -12,7 +12,6 @@ import {
   Settings,
   LogOut,
   Activity,
-  ChevronLeft,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -24,32 +23,30 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const doctorNavItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Patient Search', url: '/patients', icon: Search },
-  { title: 'OPD / Appointments', url: '/appointments', icon: Calendar },
+  { title: 'Appointments', url: '/appointments', icon: Calendar },
   { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
   { title: 'Medical Records', url: '/records', icon: FileText },
   { title: 'Prescriptions', url: '/prescriptions', icon: Pill },
-  { title: 'Reports & Analytics', url: '/reports', icon: BarChart3 },
-  { title: 'Devices & Wearables', url: '/devices', icon: Smartphone },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
+  { title: 'Devices', url: '/devices', icon: Smartphone },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
 const adminNavItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Patient Search', url: '/patients', icon: Search },
-  { title: 'OPD / Appointments', url: '/appointments', icon: Calendar },
+  { title: 'Appointments', url: '/appointments', icon: Calendar },
   { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
-  { title: 'Reports & Analytics', url: '/reports', icon: BarChart3 },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
@@ -72,25 +69,25 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+    <Sidebar collapsible="icon" className="border-r-0 shadow-xl">
+      <SidebarHeader className="border-b border-sidebar-border/50 px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary flex-shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 shadow-lg shadow-sidebar-primary/30 flex-shrink-0">
             <Activity className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-sidebar-foreground">CareTag</span>
-              <span className="text-xs text-sidebar-foreground/60 capitalize">{role || 'User'}</span>
+              <span className="text-lg font-bold text-sidebar-foreground tracking-tight">CareTag</span>
+              <span className="text-xs text-sidebar-foreground/50 capitalize font-medium">{role || 'User'} Portal</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-3 py-4">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 const isEmergency = item.title === 'Emergency';
@@ -102,17 +99,23 @@ export function AppSidebar() {
                       isActive={isActive}
                       tooltip={item.title}
                       className={cn(
-                        'transition-colors',
-                        isEmergency && 'text-emergency hover:text-emergency hover:bg-emergency/10',
-                        isActive && isEmergency && 'bg-emergency/10'
+                        'transition-all duration-200 rounded-xl h-11',
+                        isActive && !isEmergency && 'bg-sidebar-primary/15 text-sidebar-primary shadow-sm',
+                        isEmergency && 'text-emergency hover:text-emergency',
+                        isActive && isEmergency && 'bg-emergency/15 text-emergency',
+                        !isActive && !isEmergency && 'hover:bg-sidebar-accent/60'
                       )}
                     >
                       <button
                         onClick={() => navigate(item.url)}
                         className="flex items-center gap-3 w-full"
                       >
-                        <item.icon className={cn('h-5 w-5', isEmergency && 'text-emergency')} />
-                        <span>{item.title}</span>
+                        <item.icon className={cn(
+                          'h-5 w-5 transition-colors',
+                          isEmergency && 'text-emergency',
+                          isActive && !isEmergency && 'text-sidebar-primary'
+                        )} />
+                        <span className="font-medium">{item.title}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -123,19 +126,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
-          <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-sm">
+      <SidebarFooter className="border-t border-sidebar-border/50 p-4">
+        <div className={cn(
+          'flex items-center gap-3 p-2 rounded-xl bg-sidebar-accent/40',
+          collapsed && 'justify-center p-2'
+        )}>
+          <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
+            <AvatarFallback className="bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground text-sm font-semibold">
               {getInitials(user?.email || '')}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex flex-1 flex-col min-w-0">
-              <span className="text-sm font-medium text-sidebar-foreground truncate">
-                {user?.email}
+              <span className="text-sm font-semibold text-sidebar-foreground truncate">
+                {user?.email?.split('@')[0]}
               </span>
-              <span className="text-xs text-sidebar-foreground/60 capitalize">
+              <span className="text-xs text-sidebar-foreground/50 capitalize font-medium">
                 {role || 'User'}
               </span>
             </div>
@@ -145,7 +151,7 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               onClick={handleSignOut}
-              className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className="h-8 w-8 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             >
               <LogOut className="h-4 w-4" />
             </Button>

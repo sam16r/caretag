@@ -51,10 +51,10 @@ const doctorActivityData = [
 ];
 
 const prescriptionData = [
-  { category: 'Antibiotics', count: 145 },
-  { category: 'Analgesics', count: 210 },
-  { category: 'Cardiovascular', count: 98 },
-  { category: 'Respiratory', count: 67 },
+  { category: 'Antibiotics', count: 145, color: 'hsl(var(--primary))' },
+  { category: 'Analgesics', count: 210, color: 'hsl(var(--accent))' },
+  { category: 'Cardiovascular', count: 98, color: 'hsl(var(--success))' },
+  { category: 'Respiratory', count: 67, color: 'hsl(var(--warning))' },
 ];
 
 const recentAuditLogs = [
@@ -68,76 +68,82 @@ export function AdminDashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Hospital overview and analytics</p>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Hospital overview and analytics</p>
         </div>
-        <Button onClick={() => navigate('/settings')} variant="outline" className="gap-2">
+        <Button onClick={() => navigate('/settings')} variant="outline" className="gap-2 shadow-sm">
           <Shield className="h-4 w-4" />
           System Settings
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/reports')}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card className="card-interactive stat-glow-primary cursor-pointer group" onClick={() => navigate('/reports')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total OPD Today</p>
-                <p className="text-3xl font-bold text-foreground">156</p>
-                <p className="text-sm text-success">+12% from yesterday</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Total OPD Today</p>
+                <p className="text-4xl font-bold tracking-tight">156</p>
+                <div className="flex items-center gap-1 text-success text-sm font-medium">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span>+12% from yesterday</span>
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-primary" />
+              <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-105 transition-transform">
+                <Calendar className="h-7 w-7 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/emergency')}>
+        <Card className="card-interactive stat-glow-emergency cursor-pointer group border-emergency/20" onClick={() => navigate('/emergency')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Emergency Cases</p>
-                <p className="text-3xl font-bold text-emergency">8</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Emergency Cases</p>
+                <p className="text-4xl font-bold tracking-tight text-emergency">8</p>
                 <p className="text-sm text-muted-foreground">This week</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-emergency/10 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-emergency" />
+              <div className="h-14 w-14 rounded-2xl bg-emergency flex items-center justify-center shadow-lg shadow-emergency/30 group-hover:scale-105 transition-transform">
+                <AlertTriangle className="h-7 w-7 text-emergency-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/reports')}>
+        <Card className="card-interactive stat-glow-success cursor-pointer group" onClick={() => navigate('/reports')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Doctors</p>
-                <p className="text-3xl font-bold text-foreground">12</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Active Doctors</p>
+                <p className="text-4xl font-bold tracking-tight">12</p>
                 <p className="text-sm text-muted-foreground">Currently on duty</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-                <Users className="h-6 w-6 text-success" />
+              <div className="h-14 w-14 rounded-2xl bg-success flex items-center justify-center shadow-lg shadow-success/25 group-hover:scale-105 transition-transform">
+                <Users className="h-7 w-7 text-success-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/reports')}>
+        <Card className="card-interactive stat-glow-accent cursor-pointer group" onClick={() => navigate('/reports')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Prescriptions</p>
-                <p className="text-3xl font-bold text-foreground">520</p>
-                <p className="text-sm text-success">+8% this week</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Prescriptions</p>
+                <p className="text-4xl font-bold tracking-tight">520</p>
+                <div className="flex items-center gap-1 text-success text-sm font-medium">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span>+8% this week</span>
+                </div>
               </div>
-              <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-                <Pill className="h-6 w-6 text-accent" />
+              <div className="h-14 w-14 rounded-2xl gradient-accent flex items-center justify-center shadow-lg shadow-accent/25 group-hover:scale-105 transition-transform">
+                <Pill className="h-7 w-7 text-accent-foreground" />
               </div>
             </div>
           </CardContent>
@@ -146,36 +152,45 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* OPD Trends Chart */}
-        <Card className="cursor-pointer" onClick={() => navigate('/reports')}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              OPD Trends (This Week)
+        <Card className="card-elevated cursor-pointer" onClick={() => navigate('/reports')}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-4.5 w-4.5 text-primary" />
+              </div>
+              OPD Trends
             </CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
               View details <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+            <div className="h-[260px] mt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={opdTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)'
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="count"
                     stroke="hsl(var(--primary))"
-                    fill="hsl(var(--primary) / 0.2)"
-                    strokeWidth={2}
+                    fill="url(#colorCount)"
+                    strokeWidth={2.5}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -184,31 +199,34 @@ export function AdminDashboard() {
         </Card>
 
         {/* Emergency Case Trends */}
-        <Card className="cursor-pointer" onClick={() => navigate('/reports')}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-emergency" />
-              Emergency Case Trends
+        <Card className="card-elevated cursor-pointer" onClick={() => navigate('/reports')}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-emergency/10 flex items-center justify-center">
+                <AlertTriangle className="h-4.5 w-4.5 text-emergency" />
+              </div>
+              Emergency Cases
             </CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
               View details <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+            <div className="h-[260px] mt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={emergencyTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis className="text-xs" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15)'
                     }}
                   />
-                  <Bar dataKey="cases" fill="hsl(var(--emergency))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cases" fill="hsl(var(--emergency))" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -216,35 +234,38 @@ export function AdminDashboard() {
         </Card>
 
         {/* Doctor Activity Stats */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Doctor Activity Stats
+        <Card className="card-elevated">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-4.5 w-4.5 text-primary" />
+              </div>
+              Doctor Activity
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/reports')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/reports')} className="text-primary hover:text-primary">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {doctorActivityData.map((doctor) => (
+            {doctorActivityData.map((doctor, index) => (
               <div
                 key={doctor.id}
                 onClick={() => navigate('/reports')}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Users className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{doctor.name}</p>
+                    <p className="font-semibold">{doctor.name}</p>
                     <p className="text-sm text-muted-foreground">{doctor.patients} patients today</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-foreground">{doctor.consultations}</p>
-                  <p className="text-sm text-muted-foreground">consultations</p>
+                  <p className="text-2xl font-bold">{doctor.consultations}</p>
+                  <p className="text-xs text-muted-foreground">consultations</p>
                 </div>
               </div>
             ))}
@@ -252,31 +273,37 @@ export function AdminDashboard() {
         </Card>
 
         {/* Prescription Patterns */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5 text-primary" />
+        <Card className="card-elevated">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+              <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                <Pill className="h-4.5 w-4.5 text-accent" />
+              </div>
               Prescription Patterns
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/reports')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/reports')} className="text-primary hover:text-primary">
               View details <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             {prescriptionData.map((item, index) => (
               <div
                 key={index}
                 onClick={() => navigate('/reports')}
-                className="cursor-pointer"
+                className="cursor-pointer animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-foreground">{item.category}</span>
-                  <span className="text-sm text-muted-foreground">{item.count}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">{item.category}</span>
+                  <span className="text-sm font-semibold">{item.count}</span>
                 </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary rounded-full"
-                    style={{ width: `${(item.count / 250) * 100}%` }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ 
+                      width: `${(item.count / 250) * 100}%`,
+                      backgroundColor: item.color
+                    }}
                   />
                 </div>
               </div>
@@ -286,40 +313,43 @@ export function AdminDashboard() {
       </div>
 
       {/* Audit Logs */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
+      <Card className="card-elevated">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <FileText className="h-4.5 w-4.5 text-primary" />
+            </div>
             System Access Logs
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/settings')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="text-primary hover:text-primary">
             View all <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentAuditLogs.map((log) => (
+            {recentAuditLogs.map((log, index) => (
               <div
                 key={log.id}
                 onClick={() => navigate('/settings')}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 cursor-pointer transition-all duration-200 hover:shadow-sm animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                    log.type === 'emergency' ? 'bg-emergency/10' : 'bg-muted'
+                <div className="flex items-center gap-4">
+                  <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${
+                    log.type === 'emergency' ? 'bg-emergency/15' : 'bg-muted'
                   }`}>
                     <Activity className={`h-5 w-5 ${
                       log.type === 'emergency' ? 'text-emergency' : 'text-muted-foreground'
                     }`} />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{log.user}</p>
+                    <p className="font-semibold">{log.user}</p>
                     <p className="text-sm text-muted-foreground">{log.action}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">{log.time}</p>
-                  <Badge variant={log.type === 'emergency' ? 'destructive' : 'secondary'}>
+                  <Badge variant={log.type === 'emergency' ? 'destructive' : 'secondary'} className="font-medium capitalize">
                     {log.type}
                   </Badge>
                 </div>

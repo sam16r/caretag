@@ -1,135 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* CareTag Medical Design System
-   Blue-based trust palette for healthcare applications
-   All colors MUST be HSL.
+   Premium healthcare SaaS with refined aesthetics
+   All colors in HSL format
 */
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 210 40% 98%;
-    --foreground: 215 25% 15%;
+    /* Base colors - Clean, bright light mode */
+    --background: 210 20% 99%;
+    --foreground: 220 25% 10%;
 
-    /* Card surfaces */
+    /* Card surfaces - Subtle elevation */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 220 25% 10%;
 
     /* Popover surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 220 25% 10%;
 
-    /* Primary - Medical blue (trust) */
-    --primary: 210 85% 45%;
+    /* Primary - Refined medical blue */
+    --primary: 215 90% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft blue-gray */
-    --secondary: 210 30% 94%;
-    --secondary-foreground: 215 25% 25%;
+    /* Secondary - Subtle gray-blue */
+    --secondary: 215 20% 95%;
+    --secondary-foreground: 220 20% 25%;
 
-    /* Muted - Subtle backgrounds */
-    --muted: 210 25% 96%;
-    --muted-foreground: 215 15% 50%;
+    /* Muted - Soft backgrounds */
+    --muted: 215 15% 96%;
+    --muted-foreground: 220 10% 45%;
 
     /* Accent - Teal for highlights */
-    --accent: 175 65% 45%;
+    --accent: 175 70% 42%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive - Medical alert red */
-    --destructive: 0 75% 55%;
+    /* Destructive - Alert red */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warning - Amber for caution */
-    --warning: 38 92% 50%;
+    /* Warning - Amber */
+    --warning: 38 95% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Success - Medical green */
-    --success: 145 65% 40%;
+    --success: 152 70% 40%;
     --success-foreground: 0 0% 100%;
 
     /* Emergency - Critical red */
-    --emergency: 0 85% 50%;
+    --emergency: 0 85% 55%;
     --emergency-foreground: 0 0% 100%;
 
     /* Borders and inputs */
-    --border: 210 25% 88%;
-    --input: 210 25% 88%;
-    --ring: 210 85% 45%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 215 90% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Sidebar colors */
-    --sidebar-background: 215 30% 12%;
-    --sidebar-foreground: 210 25% 90%;
-    --sidebar-primary: 210 85% 55%;
+    /* Sidebar - Premium dark slate */
+    --sidebar-background: 220 30% 10%;
+    --sidebar-foreground: 220 15% 92%;
+    --sidebar-primary: 215 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 30% 18%;
-    --sidebar-accent-foreground: 210 25% 95%;
-    --sidebar-border: 215 25% 20%;
-    --sidebar-ring: 210 85% 55%;
+    --sidebar-accent: 220 25% 15%;
+    --sidebar-accent-foreground: 220 15% 95%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 215 90% 55%;
   }
 
   .dark {
-    /* Base colors - dark mode */
-    --background: 215 30% 8%;
-    --foreground: 210 25% 95%;
+    /* Base colors - Refined dark mode */
+    --background: 220 25% 8%;
+    --foreground: 220 15% 95%;
 
     /* Card surfaces */
-    --card: 215 30% 12%;
-    --card-foreground: 210 25% 95%;
+    --card: 220 25% 11%;
+    --card-foreground: 220 15% 95%;
 
     /* Popover surfaces */
-    --popover: 215 30% 12%;
-    --popover-foreground: 210 25% 95%;
+    --popover: 220 25% 11%;
+    --popover-foreground: 220 15% 95%;
 
     /* Primary - Medical blue */
-    --primary: 210 85% 55%;
+    --primary: 215 85% 55%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 215 25% 18%;
-    --secondary-foreground: 210 25% 90%;
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 220 15% 85%;
 
     /* Muted */
-    --muted: 215 25% 15%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 220 10% 55%;
 
     /* Accent - Teal */
-    --accent: 175 65% 50%;
+    --accent: 175 65% 48%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive */
-    --destructive: 0 70% 45%;
+    --destructive: 0 70% 48%;
     --destructive-foreground: 0 0% 100%;
 
     /* Warning */
-    --warning: 38 85% 55%;
+    --warning: 38 85% 52%;
     --warning-foreground: 0 0% 100%;
 
     /* Success */
-    --success: 145 60% 45%;
+    --success: 152 60% 42%;
     --success-foreground: 0 0% 100%;
 
     /* Emergency */
-    --emergency: 0 80% 55%;
+    --emergency: 0 80% 52%;
     --emergency-foreground: 0 0% 100%;
 
     /* Borders */
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 210 85% 55%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 215 85% 55%;
 
     /* Sidebar */
-    --sidebar-background: 215 35% 6%;
-    --sidebar-foreground: 210 25% 90%;
-    --sidebar-primary: 210 85% 55%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 220 15% 88%;
+    --sidebar-primary: 215 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 30% 12%;
-    --sidebar-accent-foreground: 210 25% 95%;
-    --sidebar-border: 215 25% 15%;
-    --sidebar-ring: 210 85% 55%;
+    --sidebar-accent: 220 25% 12%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 220 20% 14%;
+    --sidebar-ring: 215 85% 55%;
   }
 }
 
@@ -138,7 +140,143 @@
     @apply border-border;
   }
 
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Premium card styles */
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border/50 shadow-sm;
+    box-shadow: 
+      0 1px 3px 0 rgb(0 0 0 / 0.02),
+      0 4px 6px -1px rgb(0 0 0 / 0.03),
+      0 0 0 1px rgb(0 0 0 / 0.02);
+  }
+
+  .card-interactive {
+    @apply card-elevated transition-all duration-200;
+  }
+
+  .card-interactive:hover {
+    @apply shadow-md border-border;
+    transform: translateY(-1px);
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-card/80 backdrop-blur-md border border-border/50;
+  }
+
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(215 85% 45%) 100%);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(175 70% 35%) 100%);
+  }
+
+  /* Subtle pattern background */
+  .pattern-dots {
+    background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Stat card glow effects */
+  .stat-glow-primary {
+    box-shadow: 0 4px 24px -4px hsl(var(--primary) / 0.15);
+  }
+
+  .stat-glow-accent {
+    box-shadow: 0 4px 24px -4px hsl(var(--accent) / 0.15);
+  }
+
+  .stat-glow-emergency {
+    box-shadow: 0 4px 24px -4px hsl(var(--emergency) / 0.2);
+  }
+
+  .stat-glow-success {
+    box-shadow: 0 4px 24px -4px hsl(var(--success) / 0.15);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  }
+
+  /* Fade in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Stagger delays */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
 }

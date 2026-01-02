@@ -24,8 +24,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Activity className="h-10 w-10 animate-spin text-primary" />
-          <span className="text-muted-foreground">Loading CareTag...</span>
+          <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-xl shadow-primary/30 animate-pulse">
+            <Activity className="h-7 w-7 text-primary-foreground" />
+          </div>
+          <span className="text-muted-foreground font-medium">Loading CareTag...</span>
         </div>
       </div>
     );
@@ -37,11 +39,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-muted/30">
         <AppSidebar />
         <SidebarInset className="flex flex-col flex-1">
           <AppHeader />
-          <main className="flex-1 overflow-auto p-6 bg-background">
+          <main className="flex-1 overflow-auto p-6 lg:p-8">
             {children}
           </main>
         </SidebarInset>
