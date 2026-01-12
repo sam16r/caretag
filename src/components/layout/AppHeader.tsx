@@ -21,7 +21,6 @@ export function AppHeader() {
   const [searchQuery, setSearchQuery] = useState('');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const shortcuts = useKeyboardShortcuts(() => setShortcutsOpen(true));
-  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
