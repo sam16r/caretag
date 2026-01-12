@@ -51,64 +51,78 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'good': return 'bg-green-500';
-      case 'moderate': return 'bg-yellow-500';
+      case 'good': return 'bg-emerald-500';
+      case 'moderate': return 'bg-amber-500';
       case 'concerning': return 'bg-orange-500';
       case 'critical': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      default: return 'bg-slate-500';
+    }
+  };
+
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case 'good': return 'from-emerald-500 to-emerald-600';
+      case 'moderate': return 'from-amber-500 to-amber-600';
+      case 'concerning': return 'from-orange-500 to-orange-600';
+      case 'critical': return 'from-red-500 to-red-600';
+      default: return 'from-slate-500 to-slate-600';
     }
   };
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
-      case 'high': return <Badge className="bg-red-500">High Risk</Badge>;
-      case 'medium': return <Badge className="bg-yellow-500 text-black">Medium Risk</Badge>;
-      default: return <Badge variant="secondary">Low Risk</Badge>;
+      case 'high': return <Badge className="bg-red-500/10 text-red-600 border-red-200">High Risk</Badge>;
+      case 'medium': return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">Medium Risk</Badge>;
+      default: return <Badge className="bg-slate-500/10 text-slate-600 border-slate-200">Low Risk</Badge>;
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case 'increasing': return <TrendingUp className="h-4 w-4 text-red-500" />;
-      case 'decreasing': return <TrendingUp className="h-4 w-4 text-green-500 rotate-180" />;
-      case 'fluctuating': return <Activity className="h-4 w-4 text-yellow-500" />;
-      default: return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'decreasing': return <TrendingUp className="h-4 w-4 text-emerald-500 rotate-180" />;
+      case 'fluctuating': return <Activity className="h-4 w-4 text-amber-500" />;
+      default: return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-sm">
           <Brain className="h-4 w-4" />
           AI Insights
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-background border-border/50 shadow-xl">
+        <DialogHeader className="pb-4 border-b border-border/50">
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
             AI Health Insights
           </DialogTitle>
-          <DialogDescription>
-            AI-powered health analysis for {patientName}
+          <DialogDescription className="text-muted-foreground">
+            AI-powered health analysis for <span className="font-medium text-foreground">{patientName}</span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pt-2">
           {isLoading ? (
             <div className="space-y-4">
-              <Skeleton className="h-24 rounded-xl" />
-              <Skeleton className="h-32 rounded-xl" />
-              <Skeleton className="h-48 rounded-xl" />
+              <Skeleton className="h-24 rounded-xl bg-muted/50" />
+              <Skeleton className="h-32 rounded-xl bg-muted/50" />
+              <Skeleton className="h-48 rounded-xl bg-muted/50" />
             </div>
           ) : error ? (
-            <Card className="border-destructive">
+            <Card className="border-red-200 bg-red-50/50">
               <CardContent className="p-6 text-center">
-                <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-                <h3 className="font-semibold text-lg">Failed to Generate Insights</h3>
-                <p className="text-muted-foreground mt-2">{(error as Error).message}</p>
-                <Button onClick={() => refetch()} className="mt-4 gap-2">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="font-semibold text-lg text-foreground">Failed to Generate Insights</h3>
+                <p className="text-muted-foreground mt-2 text-sm">{(error as Error).message}</p>
+                <Button onClick={() => refetch()} className="mt-4 gap-2 bg-primary hover:bg-primary/90">
                   <RefreshCw className="h-4 w-4" />
                   Try Again
                 </Button>
@@ -117,57 +131,73 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
           ) : insights ? (
             <>
               {/* Overall Status */}
-              <Card className="overflow-hidden">
-                <div className={`${getStatusColor(insights.overallStatus)} p-4 text-white`}>
+              <Card className="overflow-hidden border-0 shadow-md">
+                <div className={`bg-gradient-to-r ${getStatusBg(insights.overallStatus)} p-5 text-white`}>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-lg capitalize">Overall Status: {insights.overallStatus}</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <Activity className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-white/80 text-sm">Overall Status</p>
+                        <h3 className="font-bold text-xl capitalize">{insights.overallStatus}</h3>
+                      </div>
+                    </div>
                     <Button 
                       variant="ghost" 
-                      size="sm" 
+                      size="icon" 
                       onClick={() => refetch()}
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/20 rounded-full"
                     >
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="mt-2 opacity-90">{insights.summary}</p>
+                  <p className="mt-3 text-white/90 text-sm leading-relaxed">{insights.summary}</p>
                 </div>
               </Card>
 
               {/* Vitals Trends */}
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-primary" />
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5">
+                  <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
+                    <div className="p-1.5 rounded-md bg-primary/10">
+                      <Activity className="h-4 w-4 text-primary" />
+                    </div>
                     Vitals Trends
                   </h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-                      <Heart className="h-5 w-5 text-red-500" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-red-50 to-red-100/50 border border-red-100">
+                      <div className="p-2 rounded-lg bg-white shadow-sm">
+                        <Heart className="h-5 w-5 text-red-500" />
+                      </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Heart Rate</p>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium capitalize">{insights.vitalsTrend.heartRate}</span>
+                        <p className="text-xs text-muted-foreground font-medium">Heart Rate</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="font-semibold text-foreground capitalize">{insights.vitalsTrend.heartRate}</span>
                           {getTrendIcon(insights.vitalsTrend.heartRate)}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-                      <Activity className="h-5 w-5 text-blue-500" />
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100">
+                      <div className="p-2 rounded-lg bg-white shadow-sm">
+                        <Activity className="h-5 w-5 text-primary" />
+                      </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Blood Pressure</p>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium capitalize">{insights.vitalsTrend.bloodPressure}</span>
+                        <p className="text-xs text-muted-foreground font-medium">Blood Pressure</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="font-semibold text-foreground capitalize">{insights.vitalsTrend.bloodPressure}</span>
                           {getTrendIcon(insights.vitalsTrend.bloodPressure)}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-                      <Droplets className="h-5 w-5 text-cyan-500" />
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-100">
+                      <div className="p-2 rounded-lg bg-white shadow-sm">
+                        <Droplets className="h-5 w-5 text-cyan-500" />
+                      </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Oxygenation</p>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium capitalize">{insights.vitalsTrend.oxygenation}</span>
+                        <p className="text-xs text-muted-foreground font-medium">Oxygenation</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="font-semibold text-foreground capitalize">{insights.vitalsTrend.oxygenation}</span>
                           {getTrendIcon(insights.vitalsTrend.oxygenation)}
                         </div>
                       </div>
@@ -178,20 +208,22 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
 
               {/* Health Risks */}
               {insights.risks.length > 0 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-warning" />
+                <Card className="border-border/50 shadow-sm">
+                  <CardContent className="p-5">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
+                      <div className="p-1.5 rounded-md bg-amber-500/10">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      </div>
                       Identified Health Risks
                     </h4>
                     <div className="space-y-3">
                       {insights.risks.map((risk, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-muted/50 border-l-4 border-l-warning">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium">{risk.title}</span>
+                        <div key={i} className="p-4 rounded-xl bg-gradient-to-r from-amber-50/50 to-transparent border border-amber-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-foreground">{risk.title}</span>
                             {getSeverityBadge(risk.severity)}
                           </div>
-                          <p className="text-sm text-muted-foreground">{risk.description}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{risk.description}</p>
                         </div>
                       ))}
                     </div>
@@ -201,21 +233,23 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
 
               {/* Recommendations */}
               {insights.recommendations.length > 0 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-success" />
+                <Card className="border-border/50 shadow-sm">
+                  <CardContent className="p-5">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
+                      <div className="p-1.5 rounded-md bg-emerald-500/10">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      </div>
                       Recommendations
                     </h4>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {insights.recommendations.map((rec, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                          <Badge variant="outline" className="shrink-0 capitalize">
+                        <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
+                          <Badge className="shrink-0 capitalize bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                             {rec.category}
                           </Badge>
                           <div>
-                            <p className="font-medium">{rec.title}</p>
-                            <p className="text-sm text-muted-foreground">{rec.details}</p>
+                            <p className="font-semibold text-foreground">{rec.title}</p>
+                            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{rec.details}</p>
                           </div>
                         </div>
                       ))}
@@ -226,14 +260,21 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
 
               {/* Next Steps */}
               {insights.nextSteps.length > 0 && (
-                <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-3">Suggested Next Steps</h4>
-                    <ul className="space-y-2">
+                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-sm">
+                  <CardContent className="p-5">
+                    <h4 className="font-semibold mb-4 text-foreground flex items-center gap-2">
+                      <div className="p-1.5 rounded-md bg-primary/10">
+                        <ArrowRight className="h-4 w-4 text-primary" />
+                      </div>
+                      Suggested Next Steps
+                    </h4>
+                    <ul className="space-y-2.5">
                       {insights.nextSteps.map((step, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm">
-                          <ArrowRight className="h-4 w-4 text-primary" />
-                          {step}
+                        <li key={i} className="flex items-start gap-3 text-sm">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-xs font-semibold text-primary">{i + 1}</span>
+                          </div>
+                          <span className="text-foreground leading-relaxed">{step}</span>
                         </li>
                       ))}
                     </ul>
@@ -242,9 +283,12 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
               )}
 
               {/* Disclaimer */}
-              <p className="text-xs text-muted-foreground text-center px-4">
-                ⚠️ AI-generated insights are for clinical decision support only. Always verify with clinical judgment and patient assessment.
-              </p>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-slate-100/50 border border-slate-200">
+                <AlertTriangle className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  AI-generated insights are for clinical decision support only. Always verify with clinical judgment and patient assessment.
+                </p>
+              </div>
             </>
           ) : null}
         </div>
