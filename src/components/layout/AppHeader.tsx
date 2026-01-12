@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Moon, Sun, Search, ScanLine } from 'lucide-react';
+import { Bell, Moon, Sun, Search, ScanLine, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -12,10 +12,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/hooks/useTheme';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsModal } from '@/components/shortcuts/KeyboardShortcutsModal';
 
 export function AppHeader() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const shortcuts = useKeyboardShortcuts(() => setShortcutsOpen(true));
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -96,6 +101,17 @@ export function AppHeader() {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Keyboard shortcuts */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setShortcutsOpen(true)}
+        className="h-10 w-10 rounded-xl hover:bg-muted hidden md:flex"
+        title="Keyboard Shortcuts (Ctrl+/)"
+      >
+        <Keyboard className="h-5 w-5" />
+      </Button>
+
       {/* Theme toggle */}
       <Button
         variant="ghost"
@@ -109,6 +125,12 @@ export function AppHeader() {
           <Moon className="h-5 w-5" />
         )}
       </Button>
+
+      <KeyboardShortcutsModal
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+        shortcuts={shortcuts}
+      />
     </header>
   );
 }
