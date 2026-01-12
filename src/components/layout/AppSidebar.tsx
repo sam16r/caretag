@@ -69,25 +69,25 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/60 bg-card">
-      <SidebarHeader className="border-b border-border/60 px-4 py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/25 flex-shrink-0">
-            <Activity className="h-5 w-5 text-primary-foreground" />
+    <Sidebar collapsible="icon" className="border-r border-border bg-card">
+      <SidebarHeader className="border-b border-border px-4 py-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary flex-shrink-0">
+            <Activity className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-foreground tracking-tight">CareTag</span>
-              <span className="text-xs text-muted-foreground capitalize font-medium">{role || 'User'} Portal</span>
+              <span className="text-sm font-semibold text-foreground">CareTag</span>
+              <span className="text-xs text-muted-foreground capitalize">{role || 'User'}</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-2 py-3">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-0.5">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 const isEmergency = item.title === 'Emergency';
@@ -99,23 +99,23 @@ export function AppSidebar() {
                       isActive={isActive}
                       tooltip={item.title}
                       className={cn(
-                        'transition-all duration-200 rounded-xl h-11',
-                        isActive && !isEmergency && 'bg-primary/10 text-primary shadow-sm',
+                        'transition-colors duration-100 rounded-lg h-9',
+                        isActive && !isEmergency && 'bg-primary/8 text-primary font-medium',
                         isEmergency && 'text-emergency hover:text-emergency',
-                        isActive && isEmergency && 'bg-emergency/10 text-emergency',
-                        !isActive && !isEmergency && 'hover:bg-muted'
+                        isActive && isEmergency && 'bg-emergency/8 text-emergency font-medium',
+                        !isActive && !isEmergency && 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       )}
                     >
                       <button
                         onClick={() => navigate(item.url)}
-                        className="flex items-center gap-3 w-full"
+                        className="flex items-center gap-2.5 w-full"
                       >
                         <item.icon className={cn(
-                          'h-5 w-5 transition-colors',
+                          'h-4 w-4',
                           isEmergency && 'text-emergency',
                           isActive && !isEmergency && 'text-primary'
                         )} />
-                        <span className="font-medium text-foreground">{item.title}</span>
+                        <span className="text-sm">{item.title}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -126,22 +126,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/60 p-4">
+      <SidebarFooter className="border-t border-border p-3">
         <div className={cn(
-          'flex items-center gap-3 p-2 rounded-xl bg-muted/50',
-          collapsed && 'justify-center p-2'
+          'flex items-center gap-2.5 p-2 rounded-lg bg-muted/50',
+          collapsed && 'justify-center p-1.5'
         )}>
-          <Avatar className="h-9 w-9 ring-2 ring-border">
-            <AvatarFallback className="gradient-primary text-primary-foreground text-sm font-semibold">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="gradient-primary text-primary-foreground text-xs font-medium">
               {getInitials(user?.email || '')}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <div className="flex flex-1 flex-col min-w-0">
-              <span className="text-sm font-semibold text-foreground truncate">
+              <span className="text-sm font-medium text-foreground truncate">
                 {user?.email?.split('@')[0]}
               </span>
-              <span className="text-xs text-muted-foreground capitalize font-medium">
+              <span className="text-xs text-muted-foreground capitalize">
                 {role || 'User'}
               </span>
             </div>
@@ -151,9 +151,9 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               onClick={handleSignOut}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
