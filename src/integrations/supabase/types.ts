@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_waitlist: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          id: string
+          notified_at: string | null
+          patient_id: string
+          preferred_date: string | null
+          preferred_time_slot: string | null
+          priority: number
+          reason: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          id?: string
+          notified_at?: string | null
+          patient_id: string
+          preferred_date?: string | null
+          preferred_time_slot?: string | null
+          priority?: number
+          reason?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          notified_at?: string | null
+          patient_id?: string
+          preferred_date?: string | null
+          preferred_time_slot?: string | null
+          priority?: number
+          reason?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           created_at: string
@@ -94,6 +133,48 @@ export type Database = {
         }
         Relationships: []
       }
+      clinics: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          settings: Json | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          settings?: Json | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       emergency_records: {
         Row: {
           actions_taken: string[] | null
@@ -144,6 +225,204 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          appointment_id: string | null
+          categories: Json | null
+          comment: string | null
+          created_at: string
+          doctor_id: string
+          id: string
+          is_anonymous: boolean
+          patient_id: string
+          rating: number
+        }
+        Insert: {
+          appointment_id?: string | null
+          categories?: Json | null
+          comment?: string | null
+          created_at?: string
+          doctor_id: string
+          id?: string
+          is_anonymous?: boolean
+          patient_id: string
+          rating: number
+        }
+        Update: {
+          appointment_id?: string | null
+          categories?: Json | null
+          comment?: string | null
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          is_anonymous?: boolean
+          patient_id?: string
+          rating?: number
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          category: string
+          cost_per_unit: number | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          location: string | null
+          min_stock_level: number
+          name: string
+          notes: string | null
+          quantity: number
+          sku: string | null
+          supplier: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cost_per_unit?: number | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          name: string
+          notes?: string | null
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cost_per_unit?: number | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          name?: string
+          notes?: string | null
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          discount_amount: number
+          doctor_id: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          items: Json
+          notes: string | null
+          paid_at: string | null
+          patient_id: string
+          payment_method: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          doctor_id: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          items?: Json
+          notes?: string | null
+          paid_at?: string | null
+          patient_id: string
+          payment_method?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          doctor_id?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          items?: Json
+          notes?: string | null
+          paid_at?: string | null
+          patient_id?: string
+          payment_method?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lab_results: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          reference_max: number | null
+          reference_min: number | null
+          result_unit: string | null
+          result_value: number | null
+          status: string
+          test_category: string
+          test_name: string
+          tested_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reference_max?: number | null
+          reference_min?: number | null
+          result_unit?: string | null
+          result_value?: number | null
+          status?: string
+          test_category: string
+          test_name: string
+          tested_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reference_max?: number | null
+          reference_min?: number | null
+          result_unit?: string | null
+          result_value?: number | null
+          status?: string
+          test_category?: string
+          test_name?: string
+          tested_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           attachments: string[] | null
@@ -190,6 +469,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          patient_id: string | null
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+          subject: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          patient_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+          subject: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          patient_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+          subject?: string
+        }
+        Relationships: []
       }
       patients: {
         Row: {
@@ -436,6 +754,93 @@ export type Database = {
           updated_at?: string
           verification_status?: string | null
           years_of_experience?: number | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          appointment_date: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          priority: string
+          reason: string
+          referring_doctor_id: string
+          specialist_name: string
+          specialist_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          priority?: string
+          reason: string
+          referring_doctor_id: string
+          specialist_name: string
+          specialist_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          priority?: string
+          reason?: string
+          referring_doctor_id?: string
+          specialist_name?: string
+          specialist_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      staff_schedules: {
+        Row: {
+          break_end: string | null
+          break_start: string | null
+          created_at: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id: string
+          is_available: boolean
+          max_appointments: number | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_end?: string | null
+          break_start?: string | null
+          created_at?: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean
+          max_appointments?: number | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          break_end?: string | null
+          break_start?: string | null
+          created_at?: string
+          day_of_week?: number
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          max_appointments?: number | null
+          start_time?: string
+          updated_at?: string
         }
         Relationships: []
       }
