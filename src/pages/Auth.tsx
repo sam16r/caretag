@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Shield, Stethoscope, AlertCircle, Sparkles, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Activity, Shield, Stethoscope, AlertCircle, Sparkles, ArrowLeft, ArrowRight, Loader2, Mail, Check } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,13 +34,17 @@ export default function Auth() {
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(false);
-  const [view, setView] = useState<'login' | 'signup' | 'success'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'success' | 'forgot-password' | 'reset-sent'>('login');
   const [signupStep, setSignupStep] = useState(0);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  
+  // Forgot password
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetError, setResetError] = useState('');
   
   // Signup form data
   const [accountData, setAccountData] = useState({
@@ -115,6 +119,35 @@ export default function Auth() {
         setLoginError(error.message);
       }
     }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    
+    try {
+      emailSchema.parse(resetEmail);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setResetError(err.errors[0].message);
+        return;
+      }
+    }
+    
+    setIsLoading(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    
+    setIsLoading(false);
+    
+    if (error) {
+      setResetError(error.message);
+      return;
+    }
+    
+    setView('reset-sent');
   };
 
   const validateAccountStep = () => {
@@ -409,6 +442,126 @@ export default function Auth() {
     );
   }
 
+  // Reset email sent confirmation
+  if (view === 'reset-sent') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-8">
+        <Card className="w-full max-w-md border-border/50 shadow-xl shadow-black/5 rounded-2xl text-center">
+          <CardContent className="p-8">
+            <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <Mail className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
+            <p className="text-muted-foreground mb-6">
+              We've sent a password reset link to <span className="font-medium text-foreground">{resetEmail}</span>. 
+              Click the link in the email to reset your password.
+            </p>
+            <div className="p-4 rounded-xl bg-muted/50 border border-border mb-6">
+              <p className="text-xs text-muted-foreground">
+                Didn't receive the email? Check your spam folder or try again.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Button 
+                className="w-full h-11 rounded-xl font-semibold"
+                onClick={() => setView('login')}
+              >
+                Back to Login
+              </Button>
+              <Button 
+                variant="ghost"
+                className="w-full h-11 rounded-xl"
+                onClick={() => {
+                  setView('forgot-password');
+                  setResetEmail('');
+                }}
+              >
+                Try Different Email
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Forgot password view
+  if (view === 'forgot-password') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-8">
+        <div className="w-full max-w-md animate-fade-in">
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/30">
+              <Activity className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight">CareTag</span>
+          </div>
+          
+          <Card className="border-border/50 shadow-xl shadow-black/5 rounded-2xl">
+            <CardHeader className="text-center pb-2 pt-8">
+              <CardTitle className="text-2xl font-bold tracking-tight">Forgot Password?</CardTitle>
+              <CardDescription className="text-base">
+                Enter your email and we'll send you a reset link
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 pt-4">
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                {resetError && (
+                  <div className="flex items-center gap-2 p-3.5 rounded-xl bg-destructive/10 text-destructive text-sm font-medium">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    {resetError}
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email" className="text-sm font-medium">Email Address</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="doctor@hospital.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="h-11 rounded-xl"
+                    required
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 rounded-xl font-semibold shadow-lg shadow-primary/25" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </Button>
+              </form>
+              
+              <div className="mt-6 text-center">
+                <button 
+                  className="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1"
+                  onClick={() => {
+                    setView('login');
+                    setResetError('');
+                  }}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to Login
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Left side - Branding */}
@@ -522,7 +675,7 @@ export default function Auth() {
                       <button 
                         type="button" 
                         className="text-xs text-primary font-medium hover:underline"
-                        onClick={() => toast({ title: 'Coming soon', description: 'Password reset functionality will be available soon.' })}
+                        onClick={() => setView('forgot-password')}
                       >
                         Forgot Password?
                       </button>
