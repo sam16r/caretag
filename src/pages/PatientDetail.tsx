@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock, Mic } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInYears } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AIHealthInsights } from '@/components/patients/AIHealthInsights';
 import { Telemedicine } from '@/components/telemedicine/Telemedicine';
+import { MedicalHistoryTimeline } from '@/components/patients/MedicalHistoryTimeline';
+import { VoiceToText } from '@/components/voice/VoiceToText';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -154,9 +156,11 @@ export default function PatientDetail() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="history">Medical History</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
           <TabsTrigger value="vitals">Vitals Timeline</TabsTrigger>
+          <TabsTrigger value="notes">Voice Notes</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -203,6 +207,11 @@ export default function PatientDetail() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Timeline Tab - Visual Medical History */}
+        <TabsContent value="timeline" className="mt-4">
+          <MedicalHistoryTimeline patientId={id!} />
         </TabsContent>
 
         {/* Medical History Tab */}
@@ -299,10 +308,18 @@ export default function PatientDetail() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center py-8 text-muted-foreground">No vitals recorded</p>
+              <p className="text-center py-8 text-muted-foreground">No vitals recorded</p>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Voice Notes Tab */}
+        <TabsContent value="notes" className="mt-4">
+          <VoiceToText
+            placeholder="Dictate clinical notes for this patient..."
+            onTranscriptChange={(text) => console.log('Notes:', text)}
+          />
         </TabsContent>
       </Tabs>
     </div>
