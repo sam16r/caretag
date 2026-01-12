@@ -70,9 +70,9 @@ export function InvoiceManagement() {
 
       const { error } = await supabase.from('invoices').insert({
         patient_id: formData.patient_id,
-        doctor_id: user?.id,
+        doctor_id: user?.id || '',
         invoice_number: generateInvoiceNumber(),
-        items: items,
+        items: items as any,
         subtotal,
         tax_amount: taxAmount,
         discount_amount: formData.discount_amount,

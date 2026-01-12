@@ -286,7 +286,7 @@ export function PatientFeedback() {
                     )}
                   </div>
                   );
-                ))}
+                })}
               </div>
             )}
           </CardContent>
