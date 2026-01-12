@@ -175,17 +175,17 @@
   }
 
   .card-interactive:hover {
-    @apply shadow-lg border-primary/40;
-    background-color: hsl(215 90% 95%);
+    @apply shadow-lg border-primary/50;
+    background-color: hsl(215 100% 97%);
     transform: translateY(-2px);
     box-shadow: 
-      0 10px 25px -5px hsl(var(--primary) / 0.12),
-      0 8px 10px -6px hsl(var(--primary) / 0.06),
-      0 0 0 1px hsl(var(--primary) / 0.15);
+      0 12px 28px -8px hsl(var(--primary) / 0.18),
+      0 8px 12px -6px hsl(var(--primary) / 0.10),
+      0 0 0 1px hsl(var(--primary) / 0.20);
   }
 
   .dark .card-interactive:hover {
-    background-color: hsl(215 50% 20%);
+    background-color: hsl(215 60% 18%);
   }
 
   /* Glass effect */
