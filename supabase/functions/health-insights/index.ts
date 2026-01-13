@@ -90,62 +90,43 @@ serve(async (req) => {
       );
     }
 
-    // For doctors, verify they have a treatment relationship with this patient
-    // Check appointments, prescriptions, or medical records
-    if (userRole === 'doctor') {
-      const [appointmentResult, prescriptionResult, recordResult] = await Promise.all([
-        supabaseAdmin
-          .from('appointments')
-          .select('id')
-          .eq('patient_id', patientId)
-          .eq('doctor_id', userId)
-          .limit(1),
-        supabaseAdmin
-          .from('prescriptions')
-          .select('id')
-          .eq('patient_id', patientId)
-          .eq('doctor_id', userId)
-          .limit(1),
-        supabaseAdmin
-          .from('medical_records')
-          .select('id')
-          .eq('patient_id', patientId)
-          .eq('doctor_id', userId)
-          .limit(1)
-      ]);
-
-      const hasAppointment = appointmentResult.data && appointmentResult.data.length > 0;
-      const hasPrescription = prescriptionResult.data && prescriptionResult.data.length > 0;
-      const hasRecord = recordResult.data && recordResult.data.length > 0;
-
-      if (!hasAppointment && !hasPrescription && !hasRecord) {
-        console.error('Doctor has no treatment relationship with patient:', { doctorId: userId, patientId });
-        return new Response(
-          JSON.stringify({ error: 'Forbidden - No treatment relationship with this patient' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
+    // Use service role for admins (full access). For doctors, use the user-scoped client so
+    // Row-Level Security (RLS) stays the source of truth and matches what the UI can access.
+    const db = userRole === 'admin' ? supabaseAdmin : supabaseUserClient;
 
     console.log(`User ${userId} (${userRole}) requesting health insights for patient ${patientId}`);
 
-    // Fetch patient data using admin client
+    // Fetch patient data using selected client
     const [patientResult, vitalsResult, prescriptionsResult, recordsResult] = await Promise.all([
-      supabaseAdmin.from('patients').select('*').eq('id', patientId).single(),
-      supabaseAdmin.from('vitals').select('*').eq('patient_id', patientId).order('recorded_at', { ascending: false }).limit(20),
-      supabaseAdmin.from('prescriptions').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(10),
-      supabaseAdmin.from('medical_records').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(10)
+      db.from('patients').select('*').eq('id', patientId).maybeSingle(),
+      db.from('vitals').select('*').eq('patient_id', patientId).order('recorded_at', { ascending: false }).limit(20),
+      db.from('prescriptions').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(10),
+      db.from('medical_records').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(10)
     ]);
+
+    const firstError = patientResult.error || vitalsResult.error || prescriptionsResult.error || recordsResult.error;
+    if (firstError) {
+      console.error('Failed to fetch patient context for insights:', firstError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch patient data' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const patient = patientResult.data;
     const vitals = vitalsResult.data || [];
     const prescriptions = prescriptionsResult.data || [];
     const records = recordsResult.data || [];
 
+    // If doctors can't see the patient due to RLS, treat it as forbidden.
     if (!patient) {
       return new Response(
-        JSON.stringify({ error: 'Patient not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          error: userRole === 'admin'
+            ? 'Patient not found'
+            : 'Forbidden - No access to this patient'
+        }),
+        { status: userRole === 'admin' ? 404 : 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
