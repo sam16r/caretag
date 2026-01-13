@@ -91,23 +91,34 @@ serve(async (req) => {
     }
 
     // For doctors, verify they have a treatment relationship with this patient
+    // Check appointments, prescriptions, or medical records
     if (userRole === 'doctor') {
-      const { data: appointmentData, error: appointmentError } = await supabaseAdmin
-        .from('appointments')
-        .select('id')
-        .eq('patient_id', patientId)
-        .eq('doctor_id', userId)
-        .limit(1);
+      const [appointmentResult, prescriptionResult, recordResult] = await Promise.all([
+        supabaseAdmin
+          .from('appointments')
+          .select('id')
+          .eq('patient_id', patientId)
+          .eq('doctor_id', userId)
+          .limit(1),
+        supabaseAdmin
+          .from('prescriptions')
+          .select('id')
+          .eq('patient_id', patientId)
+          .eq('doctor_id', userId)
+          .limit(1),
+        supabaseAdmin
+          .from('medical_records')
+          .select('id')
+          .eq('patient_id', patientId)
+          .eq('doctor_id', userId)
+          .limit(1)
+      ]);
 
-      if (appointmentError) {
-        console.error('Failed to check treatment relationship:', appointmentError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to verify access' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      const hasAppointment = appointmentResult.data && appointmentResult.data.length > 0;
+      const hasPrescription = prescriptionResult.data && prescriptionResult.data.length > 0;
+      const hasRecord = recordResult.data && recordResult.data.length > 0;
 
-      if (!appointmentData || appointmentData.length === 0) {
+      if (!hasAppointment && !hasPrescription && !hasRecord) {
         console.error('Doctor has no treatment relationship with patient:', { doctorId: userId, patientId });
         return new Response(
           JSON.stringify({ error: 'Forbidden - No treatment relationship with this patient' }),
