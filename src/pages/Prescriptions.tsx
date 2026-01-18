@@ -13,6 +13,7 @@ import { DrugInteractionChecker } from '@/components/prescriptions/DrugInteracti
 import { PrescriptionTemplates } from '@/components/prescriptions/PrescriptionTemplates';
 import { DosageCalculator } from '@/components/prescriptions/DosageCalculator';
 import { PrescriptionFilters, PrescriptionFiltersState } from '@/components/prescriptions/PrescriptionFilters';
+import { NewPrescriptionForm } from '@/components/prescriptions/NewPrescriptionForm';
 
 interface Medication {
   name: string;
@@ -106,10 +107,7 @@ export default function Prescriptions() {
           <DrugInteractionChecker />
           <DosageCalculator />
           <PrescriptionTemplates />
-          <Button className="gap-2 shadow-lg shadow-primary/25">
-            <Plus className="h-4 w-4" />
-            New Prescription
-          </Button>
+          <NewPrescriptionForm />
         </div>
       </div>
 

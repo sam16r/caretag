@@ -2,9 +2,10 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock, Mic, FlaskConical, UserCheck } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock, Mic, FlaskConical, UserCheck, Plus } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInYears } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -14,9 +15,11 @@ import { MedicalHistoryTimeline } from '@/components/patients/MedicalHistoryTime
 import { VoiceToText } from '@/components/voice/VoiceToText';
 import { LabResultsPanel } from '@/components/lab-results/LabResultsPanel';
 import { ReferralManagement } from '@/components/referrals/ReferralManagement';
+import { NewPrescriptionForm } from '@/components/prescriptions/NewPrescriptionForm';
 
 export default function PatientDetail() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
   const { data: patient, isLoading: patientLoading } = useQuery({
     queryKey: ['patient', id],
@@ -133,6 +136,17 @@ export default function PatientDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <NewPrescriptionForm
+            preselectedPatientId={id}
+            preselectedPatientName={patient.full_name}
+            trigger={
+              <Button variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Prescription
+              </Button>
+            }
+            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['prescriptions', id] })}
+          />
           <AIHealthInsights patientId={id!} patientName={patient.full_name} />
           <Telemedicine patientName={patient.full_name} patientId={id} />
           <Badge variant="secondary">{patient.chronic_conditions?.length ? 'Has Conditions' : 'Healthy'}</Badge>
