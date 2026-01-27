@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Activity,
+  PieChart,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,6 +36,7 @@ const doctorNavItems = [
   { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
   { title: 'Records', url: '/records', icon: FileText },
   { title: 'Prescriptions', url: '/prescriptions', icon: Pill },
+  { title: 'Analytics', url: '/analytics', icon: PieChart },
   { title: 'Reports', url: '/reports', icon: BarChart3 },
   { title: 'Devices', url: '/devices', icon: Smartphone },
   { title: 'Settings', url: '/settings', icon: Settings },
@@ -45,6 +47,7 @@ const adminNavItems = [
   { title: 'Patients', url: '/patients', icon: Search },
   { title: 'Appointments', url: '/appointments', icon: Calendar },
   { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
+  { title: 'Analytics', url: '/analytics', icon: PieChart },
   { title: 'Reports', url: '/reports', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];

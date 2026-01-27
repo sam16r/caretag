@@ -18,6 +18,7 @@ import Prescriptions from "./pages/Prescriptions";
 import Reports from "./pages/Reports";
 import Devices from "./pages/Devices";
 import Settings from "./pages/Settings";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -110,6 +111,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <Settings />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <AppLayout>
+                    <Analytics />
                   </AppLayout>
                 }
               />
