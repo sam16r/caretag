@@ -345,8 +345,9 @@ export default function PatientDetail() {
         {/* Voice Notes Tab */}
         <TabsContent value="notes" className="mt-4">
           <VoiceToText
+            patientId={id}
             placeholder="Dictate clinical notes for this patient..."
-            onTranscriptChange={(text) => console.log('Notes:', text)}
+            label="Voice Notes"
           />
         </TabsContent>
       </Tabs>

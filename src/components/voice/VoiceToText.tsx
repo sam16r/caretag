@@ -3,14 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Square, Loader2, Copy, Check, Trash2 } from 'lucide-react';
+import { Mic, MicOff, Square, Loader2, Copy, Check, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface VoiceToTextProps {
   onTranscriptChange?: (text: string) => void;
+  onSave?: (text: string) => void;
   placeholder?: string;
   initialValue?: string;
   label?: string;
+  patientId?: string;
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -42,17 +46,21 @@ declare global {
 
 export function VoiceToText({
   onTranscriptChange,
+  onSave,
   placeholder = 'Click the microphone to start dictating clinical notes...',
   initialValue = '',
   label = 'Clinical Notes',
+  patientId,
 }: VoiceToTextProps) {
   const [transcript, setTranscript] = useState(initialValue);
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const [copied, setCopied] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Check if Speech Recognition is supported
@@ -157,6 +165,48 @@ export function VoiceToText({
     const newText = e.target.value;
     setTranscript(newText);
     onTranscriptChange?.(newText);
+  };
+
+  const handleSave = async () => {
+    if (!transcript.trim()) {
+      toast.error('Nothing to save');
+      return;
+    }
+
+    if (!patientId) {
+      toast.error('Patient ID is required to save voice notes');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to save notes');
+        return;
+      }
+
+      const { error } = await supabase.from('medical_records').insert({
+        patient_id: patientId,
+        doctor_id: user.id,
+        record_type: 'Voice Note',
+        notes: transcript.trim(),
+      });
+
+      if (error) throw error;
+
+      toast.success('Voice note saved successfully');
+      onSave?.(transcript);
+      setTranscript('');
+      setInterimTranscript('');
+      queryClient.invalidateQueries({ queryKey: ['medical-records', patientId] });
+      queryClient.invalidateQueries({ queryKey: ['patient-timeline', patientId] });
+    } catch (error: any) {
+      console.error('Error saving voice note:', error);
+      toast.error(error.message || 'Failed to save voice note');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isSupported) {
@@ -271,6 +321,22 @@ export function VoiceToText({
               >
                 <Mic className="h-4 w-4" />
                 Start Dictation
+              </Button>
+            )}
+            
+            {patientId && transcript.trim() && !isListening && (
+              <Button
+                variant="secondary"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="gap-2"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Save Note
               </Button>
             )}
           </div>
