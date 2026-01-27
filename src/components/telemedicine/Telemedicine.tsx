@@ -115,10 +115,12 @@ export function Telemedicine({ patientName, patientId }: TelemedicineProps) {
           Video Consult
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] max-h-[800px] flex flex-col bg-background border-border/50 shadow-xl p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 border-b border-border/50 shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            <Video className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Video className="h-5 w-5 text-primary" />
+            </div>
             Telemedicine Consultation
           </DialogTitle>
           <DialogDescription>
@@ -128,163 +130,165 @@ export function Telemedicine({ patientName, patientId }: TelemedicineProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {!inCall ? (
-            <>
-              {/* Start new call */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Start New Consultation</h3>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={videoEnabled ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setVideoEnabled(!videoEnabled)}
-                      >
-                        {videoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        variant={audioEnabled ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setAudioEnabled(!audioEnabled)}
-                      >
-                        {audioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          <div className="space-y-4">
+            {!inCall ? (
+              <>
+                {/* Start new call */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-4">Start New Consultation</h3>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={videoEnabled ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setVideoEnabled(!videoEnabled)}
+                        >
+                          {videoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          variant={audioEnabled ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setAudioEnabled(!audioEnabled)}
+                        >
+                          {audioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <Button onClick={startCall} className="gap-2 flex-1">
+                        <Phone className="h-4 w-4" />
+                        Start Video Call
                       </Button>
                     </div>
-                    <Button onClick={startCall} className="gap-2 flex-1">
-                      <Phone className="h-4 w-4" />
-                      Start Video Call
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Join existing call */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Join Existing Room</h3>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Enter Room ID (e.g., CARE-ABC123)"
-                      value={joinRoomId}
-                      onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-                      className="flex-1"
+                {/* Join existing call */}
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-4">Join Existing Room</h3>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter Room ID (e.g., CARE-ABC123)"
+                        value={joinRoomId}
+                        onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={() => {
+                          setRoomId(joinRoomId);
+                          startCall();
+                        }}
+                        disabled={!joinRoomId.trim()}
+                      >
+                        Join
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                {/* Active call view */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Local video */}
+                  <div className="relative aspect-video bg-muted rounded-xl overflow-hidden">
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
                     />
-                    <Button 
-                      onClick={() => {
-                        setRoomId(joinRoomId);
-                        startCall();
-                      }}
-                      disabled={!joinRoomId.trim()}
-                    >
-                      Join
-                    </Button>
+                    <Badge className="absolute top-3 left-3 bg-background/80">You</Badge>
+                    {!videoEnabled && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                        <User className="h-16 w-16 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <>
-              {/* Active call view */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Local video */}
-                <div className="relative aspect-video bg-muted rounded-xl overflow-hidden">
-                  <video
-                    ref={localVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
-                  <Badge className="absolute top-3 left-3 bg-background/80">You</Badge>
-                  {!videoEnabled && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <User className="h-16 w-16 text-muted-foreground" />
+
+                  {/* Remote video placeholder */}
+                  <div className="relative aspect-video bg-muted rounded-xl overflow-hidden flex items-center justify-center">
+                    <div className="text-center">
+                      <User className="h-16 w-16 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">Waiting for patient...</p>
                     </div>
-                  )}
+                    <Badge className="absolute top-3 left-3 bg-background/80">
+                      {patientName || 'Patient'}
+                    </Badge>
+                  </div>
                 </div>
 
-                {/* Remote video placeholder */}
-                <div className="relative aspect-video bg-muted rounded-xl overflow-hidden flex items-center justify-center">
-                  <div className="text-center">
-                    <User className="h-16 w-16 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">Waiting for patient...</p>
-                  </div>
-                  <Badge className="absolute top-3 left-3 bg-background/80">
-                    {patientName || 'Patient'}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Room ID */}
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Room ID</p>
-                      <p className="font-mono font-semibold">{roomId}</p>
+                {/* Room ID */}
+                <Card className="bg-muted/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Room ID</p>
+                        <p className="font-mono font-semibold">{roomId}</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={copyRoomId} className="gap-2">
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copied ? 'Copied' : 'Copy'}
+                      </Button>
                     </div>
-                    <Button variant="outline" size="sm" onClick={copyRoomId} className="gap-2">
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copied ? 'Copied' : 'Copy'}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Share this ID with your patient so they can join the consultation
-                  </p>
-                </CardContent>
-              </Card>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Share this ID with your patient so they can join the consultation
+                    </p>
+                  </CardContent>
+                </Card>
 
-              {/* Call controls */}
-              <div className="flex items-center justify-center gap-4">
-                <Button
-                  variant={videoEnabled ? 'outline' : 'secondary'}
-                  size="lg"
-                  onClick={toggleVideo}
-                  className="rounded-full h-14 w-14"
-                >
-                  {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-                </Button>
-                <Button
-                  variant={audioEnabled ? 'outline' : 'secondary'}
-                  size="lg"
-                  onClick={toggleAudio}
-                  className="rounded-full h-14 w-14"
-                >
-                  {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="lg"
-                  onClick={endCall}
-                  className="rounded-full h-14 w-14"
-                >
-                  <PhoneOff className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="rounded-full h-14 w-14"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-              </div>
-            </>
-          )}
+                {/* Call controls */}
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    variant={videoEnabled ? 'outline' : 'secondary'}
+                    size="lg"
+                    onClick={toggleVideo}
+                    className="rounded-full h-14 w-14"
+                  >
+                    {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    variant={audioEnabled ? 'outline' : 'secondary'}
+                    size="lg"
+                    onClick={toggleAudio}
+                    className="rounded-full h-14 w-14"
+                  >
+                    {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    onClick={endCall}
+                    className="rounded-full h-14 w-14"
+                  >
+                    <PhoneOff className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="rounded-full h-14 w-14"
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                  </Button>
+                </div>
+              </>
+            )}
 
-          {/* Notice about demo mode */}
-          <Card className="border-warning/30 bg-warning/5">
-            <CardContent className="p-4">
-              <p className="text-sm text-warning text-center">
-                ⚠️ <strong>Demo Mode:</strong> This is a local video preview. Real peer-to-peer video calling requires WebRTC signaling server integration (e.g., Twilio, Daily.co, or custom WebSocket signaling).
-              </p>
-            </CardContent>
-          </Card>
+            {/* Notice about demo mode */}
+            <Card className="border-warning/30 bg-warning/5">
+              <CardContent className="p-4">
+                <p className="text-sm text-warning text-center">
+                  ⚠️ <strong>Demo Mode:</strong> This is a local video preview. Real peer-to-peer video calling requires WebRTC signaling server integration (e.g., Twilio, Daily.co, or custom WebSocket signaling).
+                </p>
+              </CardContent>
+            </Card>
 
-          <p className="text-xs text-muted-foreground text-center">
-            🔒 All video consultations are encrypted and HIPAA compliant. Recordings are not stored unless explicitly enabled.
-          </p>
+            <p className="text-xs text-muted-foreground text-center">
+              🔒 All video consultations are encrypted and HIPAA compliant. Recordings are not stored unless explicitly enabled.
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -94,7 +94,7 @@ export function AIHealthInsights({ patientId, patientName }: AIHealthInsightsPro
           AI Insights
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col bg-background border-border/50 shadow-xl p-0">
+      <DialogContent className="max-w-3xl h-[90vh] max-h-[800px] flex flex-col bg-background border-border/50 shadow-xl p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-border/50 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <div className="p-2 rounded-lg bg-primary/10">
