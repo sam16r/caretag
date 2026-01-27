@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.send-appointment-reminder]
 verify_jwt = false
+
+[functions.smart-diagnosis]
+verify_jwt = false

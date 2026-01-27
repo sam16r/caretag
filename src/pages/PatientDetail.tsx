@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInYears } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AIHealthInsights } from '@/components/patients/AIHealthInsights';
+import { SmartDiagnosis } from '@/components/patients/SmartDiagnosis';
 import { Telemedicine } from '@/components/telemedicine/Telemedicine';
 import { MedicalHistoryTimeline } from '@/components/patients/MedicalHistoryTimeline';
 import { VoiceToText } from '@/components/voice/VoiceToText';
@@ -149,6 +150,7 @@ export default function PatientDetail() {
             onSuccess={() => queryClient.invalidateQueries({ queryKey: ['prescriptions', id] })}
           />
           <AIHealthInsights patientId={id!} patientName={patient.full_name} />
+          <SmartDiagnosis patientId={id!} patientName={patient.full_name} />
           <Telemedicine patientName={patient.full_name} patientId={id} />
           <Badge variant="secondary">{patient.chronic_conditions?.length ? 'Has Conditions' : 'Healthy'}</Badge>
         </div>
