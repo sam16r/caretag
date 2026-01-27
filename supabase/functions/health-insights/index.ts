@@ -31,26 +31,18 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Validate the JWT token using getClaims
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabaseUserClient.auth.getClaims(token);
+    // Validate the JWT token using getUser
+    const { data: { user }, error: userError } = await supabaseUserClient.auth.getUser();
     
-    if (claimsError || !claimsData?.claims) {
-      console.error('Invalid token:', claimsError);
+    if (userError || !user) {
+      console.error('Invalid token:', userError);
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = claimsData.claims.sub;
-    if (!userId) {
-      console.error('No user ID in token');
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const userId = user.id;
 
     // Create admin client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);

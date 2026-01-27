@@ -170,15 +170,15 @@ export default function PatientDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="lab-results" className="gap-1"><FlaskConical className="h-3 w-3" />Lab Results</TabsTrigger>
-          <TabsTrigger value="referrals" className="gap-1"><UserCheck className="h-3 w-3" />Referrals</TabsTrigger>
-          <TabsTrigger value="history">Medical History</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="vitals">Vitals Timeline</TabsTrigger>
-          <TabsTrigger value="notes">Voice Notes</TabsTrigger>
+        <TabsList className="h-auto gap-1 bg-muted/50 p-1.5 flex-wrap">
+          <TabsTrigger value="overview" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+          <TabsTrigger value="timeline" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Timeline</TabsTrigger>
+          <TabsTrigger value="lab-results" className="rounded-full px-4 py-1.5 text-xs font-medium gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><FlaskConical className="h-3 w-3" />Lab Results</TabsTrigger>
+          <TabsTrigger value="referrals" className="rounded-full px-4 py-1.5 text-xs font-medium gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><UserCheck className="h-3 w-3" />Referrals</TabsTrigger>
+          <TabsTrigger value="history" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Medical History</TabsTrigger>
+          <TabsTrigger value="prescriptions" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Prescriptions</TabsTrigger>
+          <TabsTrigger value="vitals" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Vitals Timeline</TabsTrigger>
+          <TabsTrigger value="notes" className="rounded-full px-4 py-1.5 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Voice Notes</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}

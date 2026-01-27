@@ -273,6 +273,15 @@ export function Telemedicine({ patientName, patientId }: TelemedicineProps) {
             </>
           )}
 
+          {/* Notice about demo mode */}
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="p-4">
+              <p className="text-sm text-warning text-center">
+                ⚠️ <strong>Demo Mode:</strong> This is a local video preview. Real peer-to-peer video calling requires WebRTC signaling server integration (e.g., Twilio, Daily.co, or custom WebSocket signaling).
+              </p>
+            </CardContent>
+          </Card>
+
           <p className="text-xs text-muted-foreground text-center">
             🔒 All video consultations are encrypted and HIPAA compliant. Recordings are not stored unless explicitly enabled.
           </p>
