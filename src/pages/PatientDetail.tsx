@@ -13,6 +13,7 @@ import { AIHealthInsights } from '@/components/patients/AIHealthInsights';
 import { Telemedicine } from '@/components/telemedicine/Telemedicine';
 import { MedicalHistoryTimeline } from '@/components/patients/MedicalHistoryTimeline';
 import { VoiceToText } from '@/components/voice/VoiceToText';
+import { VoiceNotesHistory } from '@/components/voice/VoiceNotesHistory';
 import { LabResultsPanel } from '@/components/lab-results/LabResultsPanel';
 import { ReferralManagement } from '@/components/referrals/ReferralManagement';
 import { NewPrescriptionForm } from '@/components/prescriptions/NewPrescriptionForm';
@@ -343,12 +344,13 @@ export default function PatientDetail() {
         </TabsContent>
 
         {/* Voice Notes Tab */}
-        <TabsContent value="notes" className="mt-4">
+        <TabsContent value="notes" className="mt-4 space-y-6">
           <VoiceToText
             patientId={id}
             placeholder="Dictate clinical notes for this patient..."
-            label="Voice Notes"
+            label="Record Voice Note"
           />
+          <VoiceNotesHistory patientId={id!} />
         </TabsContent>
       </Tabs>
     </div>
