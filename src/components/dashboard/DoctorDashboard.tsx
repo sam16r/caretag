@@ -15,7 +15,6 @@ import {
   ScanLine,
   Users,
   FileText,
-  TrendingUp,
   ArrowUpRight,
   Heart,
 } from 'lucide-react';
@@ -43,8 +42,6 @@ export function DoctorDashboard() {
       value: stats?.totalPatients || 0,
       change: '+12%',
       icon: Users,
-      bgClass: 'stat-card-blue',
-      iconBg: 'bg-primary',
       onClick: () => navigate('/patients'),
     },
     {
@@ -52,8 +49,6 @@ export function DoctorDashboard() {
       value: stats?.todayAppointments || 0,
       change: null,
       icon: Calendar,
-      bgClass: 'stat-card-indigo',
-      iconBg: 'bg-accent',
       onClick: () => navigate('/appointments'),
     },
     {
@@ -61,8 +56,6 @@ export function DoctorDashboard() {
       value: stats?.activeEmergencies || 0,
       change: null,
       icon: AlertTriangle,
-      bgClass: 'stat-card-red',
-      iconBg: (stats?.activeEmergencies || 0) > 0 ? 'bg-destructive' : 'bg-muted',
       highlight: (stats?.activeEmergencies || 0) > 0,
       onClick: () => navigate('/emergency'),
     },
@@ -71,8 +64,6 @@ export function DoctorDashboard() {
       value: stats?.activePrescriptions || 0,
       change: '+3',
       icon: FileText,
-      bgClass: 'stat-card-green',
-      iconBg: 'bg-success',
       onClick: () => navigate('/prescriptions'),
     },
   ];
@@ -110,41 +101,42 @@ export function DoctorDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <div 
+          <Card 
             key={stat.title}
-            className={cn(stat.bgClass, "cursor-pointer hover:shadow-md transition-shadow")}
+            className="cursor-pointer hover:shadow-md transition-shadow"
             onClick={stat.onClick}
           >
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-14" />
-                ) : (
-                  <div className="flex items-baseline gap-2">
-                    <span className={cn(
-                      "text-3xl font-semibold",
-                      stat.highlight && "text-destructive"
-                    )}>
-                      {stat.value}
-                    </span>
-                    {stat.change && (
-                      <Badge variant="secondary" className="bg-success/10 text-success border-0 text-xs">
-                        <TrendingUp className="h-3 w-3 mr-0.5" />
-                        {stat.change}
-                      </Badge>
-                    )}
-                  </div>
-                )}
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  {statsLoading ? (
+                    <Skeleton className="h-8 w-14" />
+                  ) : (
+                    <div className="flex items-baseline gap-2">
+                      <span className={cn(
+                        "text-2xl font-semibold",
+                        stat.highlight && "text-destructive"
+                      )}>
+                        {stat.value}
+                      </span>
+                      {stat.change && (
+                        <span className="text-xs text-muted-foreground">
+                          {stat.change}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center">
+                  <stat.icon className={cn(
+                    "h-4 w-4",
+                    stat.highlight ? "text-destructive" : "text-muted-foreground"
+                  )} />
+                </div>
               </div>
-              <div className={cn(
-                "h-10 w-10 rounded-lg flex items-center justify-center",
-                stat.iconBg
-              )}>
-                <stat.icon className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -179,7 +171,7 @@ export function DoctorDashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="h-4 w-4 text-primary" />
+                <Clock className="h-4 w-4 text-muted-foreground" />
                 Today's Schedule
               </CardTitle>
               <CardDescription>Your upcoming appointments</CardDescription>
@@ -188,7 +180,7 @@ export function DoctorDashboard() {
               variant="ghost" 
               size="sm" 
               onClick={() => navigate('/appointments')} 
-              className="gap-1 text-primary"
+              className="gap-1"
             >
               View all
               <ArrowRight className="h-4 w-4" />
@@ -204,9 +196,9 @@ export function DoctorDashboard() {
                 <div
                   key={apt.id}
                   onClick={() => navigate(`/patients/${apt.patient_id}`)}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
+                  <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-foreground font-medium text-sm">
                     {(apt.patients as any)?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'P'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -218,7 +210,7 @@ export function DoctorDashboard() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-primary">{format(new Date(apt.scheduled_at), 'h:mm a')}</p>
+                    <p className="font-medium">{format(new Date(apt.scheduled_at), 'h:mm a')}</p>
                     <Badge 
                       variant={apt.status === 'in_progress' ? 'default' : 'secondary'}
                       className="capitalize text-xs"
@@ -253,7 +245,7 @@ export function DoctorDashboard() {
                 {emergencies && emergencies.length > 0 ? (
                   <AlertTriangle className="h-4 w-4" />
                 ) : (
-                  <Heart className="h-4 w-4 text-success" />
+                  <Heart className="h-4 w-4 text-muted-foreground" />
                 )}
                 Emergencies
               </CardTitle>
@@ -295,9 +287,9 @@ export function DoctorDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <Activity className="h-8 w-8 text-success mx-auto mb-2" />
-                  <p className="font-medium text-success">All Clear</p>
+              <div className="text-center py-8">
+                  <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="font-medium">All Clear</p>
                   <p className="text-sm text-muted-foreground">No emergencies</p>
                 </div>
               )}
@@ -308,7 +300,7 @@ export function DoctorDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <User className="h-4 w-4 text-accent" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 Recent Patients
               </CardTitle>
               <Button 
@@ -331,7 +323,7 @@ export function DoctorDashboard() {
                     onClick={() => navigate(`/patients/${patient.id}`)}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                   >
-                    <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent font-medium text-sm">
+                    <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center text-foreground font-medium text-sm">
                       {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
                     </div>
                     <div className="flex-1 min-w-0">
