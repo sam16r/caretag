@@ -66,7 +66,7 @@ export function AppHeader() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/patients?scan=true')}
+          onClick={() => navigate('/scan')}
           className="gap-2 hidden lg:flex h-8 px-3 text-muted-foreground hover:text-foreground"
         >
           <ScanLine className="h-4 w-4" />
