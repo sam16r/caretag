@@ -138,8 +138,8 @@ export default function Patients() {
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-blue-600 font-medium text-sm">
+                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-blue-700 font-medium text-sm">
                       {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
                     </span>
                   </div>
@@ -150,7 +150,7 @@ export default function Patients() {
                         <p className="text-xs text-muted-foreground font-mono">{patient.caretag_id}</p>
                       </div>
                       {patient.blood_group && (
-                        <Badge variant="outline" className="flex-shrink-0 text-xs text-red-600 border-red-200 bg-red-50">
+                        <Badge variant="outline" className="flex-shrink-0 text-xs text-red-700 border-red-300 bg-red-100">
                           {patient.blood_group}
                         </Badge>
                       )}
@@ -181,7 +181,7 @@ export default function Patients() {
                         </Badge>
                       )}
                       {patient.allergies && patient.allergies.length > 0 && (
-                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-200 bg-amber-50">
+                        <Badge variant="outline" className="text-xs text-amber-700 border-amber-300 bg-amber-100">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           {patient.allergies.length} allerg{patient.allergies.length > 1 ? 'ies' : 'y'}
                         </Badge>

@@ -42,8 +42,8 @@ export function DoctorDashboard() {
       value: stats?.totalPatients || 0,
       change: '+12%',
       icon: Users,
-      iconColor: 'text-blue-600',
-      iconBg: 'bg-blue-50',
+      iconColor: 'text-blue-700',
+      iconBg: 'bg-blue-100',
       onClick: () => navigate('/patients'),
     },
     {
@@ -51,8 +51,8 @@ export function DoctorDashboard() {
       value: stats?.todayAppointments || 0,
       change: null,
       icon: Calendar,
-      iconColor: 'text-violet-600',
-      iconBg: 'bg-violet-50',
+      iconColor: 'text-violet-700',
+      iconBg: 'bg-violet-100',
       onClick: () => navigate('/appointments'),
     },
     {
@@ -60,8 +60,8 @@ export function DoctorDashboard() {
       value: stats?.activeEmergencies || 0,
       change: null,
       icon: AlertTriangle,
-      iconColor: (stats?.activeEmergencies || 0) > 0 ? 'text-red-600' : 'text-slate-400',
-      iconBg: (stats?.activeEmergencies || 0) > 0 ? 'bg-red-50' : 'bg-slate-50',
+      iconColor: (stats?.activeEmergencies || 0) > 0 ? 'text-red-700' : 'text-slate-400',
+      iconBg: (stats?.activeEmergencies || 0) > 0 ? 'bg-red-100' : 'bg-slate-100',
       highlight: (stats?.activeEmergencies || 0) > 0,
       onClick: () => navigate('/emergency'),
     },
@@ -70,8 +70,8 @@ export function DoctorDashboard() {
       value: stats?.activePrescriptions || 0,
       change: '+3',
       icon: FileText,
-      iconColor: 'text-emerald-600',
-      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-700',
+      iconBg: 'bg-emerald-100',
       onClick: () => navigate('/prescriptions'),
     },
   ];
@@ -179,7 +179,7 @@ export function DoctorDashboard() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="h-4 w-4 text-blue-500" />
+                <Clock className="h-4 w-4 text-blue-600" />
                 Today's Schedule
               </CardTitle>
               <CardDescription>Your upcoming appointments</CardDescription>
@@ -206,7 +206,7 @@ export function DoctorDashboard() {
                   onClick={() => navigate(`/patients/${apt.patient_id}`)}
                   className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-medium text-sm">
+                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700 font-medium text-sm">
                     {(apt.patients as any)?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'P'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -253,7 +253,7 @@ export function DoctorDashboard() {
                 {emergencies && emergencies.length > 0 ? (
                   <AlertTriangle className="h-4 w-4" />
                 ) : (
-                  <Heart className="h-4 w-4 text-emerald-500" />
+                  <Heart className="h-4 w-4 text-emerald-600" />
                 )}
                 Emergencies
               </CardTitle>
@@ -296,8 +296,8 @@ export function DoctorDashboard() {
                 ))
               ) : (
               <div className="text-center py-8">
-                  <Activity className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                  <p className="font-medium text-emerald-600">All Clear</p>
+                  <Activity className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                  <p className="font-medium text-emerald-700">All Clear</p>
                   <p className="text-sm text-muted-foreground">No emergencies</p>
                 </div>
               )}
@@ -307,8 +307,8 @@ export function DoctorDashboard() {
           {/* Recent Patients */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <User className="h-4 w-4 text-violet-500" />
+            <CardTitle className="flex items-center gap-2 text-base">
+                <User className="h-4 w-4 text-violet-600" />
                 Recent Patients
               </CardTitle>
               <Button 
@@ -331,7 +331,7 @@ export function DoctorDashboard() {
                     onClick={() => navigate(`/patients/${patient.id}`)}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                   >
-                    <div className="h-9 w-9 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 font-medium text-sm">
+                    <div className="h-9 w-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-medium text-sm">
                       {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
                     </div>
                     <div className="flex-1 min-w-0">
