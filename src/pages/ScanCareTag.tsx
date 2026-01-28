@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wifi, CheckCircle2, User, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,16 +36,69 @@ const generateRandomPatient = () => {
   };
 };
 
+// Play a subtle success sound using Web Audio API
+const playDetectionSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create two oscillators for a pleasant two-tone "ding"
+    const oscillator1 = audioContext.createOscillator();
+    const oscillator2 = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator1.connect(gainNode);
+    oscillator2.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Pleasant frequencies (C5 and E5 - major third)
+    oscillator1.frequency.setValueAtTime(523.25, audioContext.currentTime);
+    oscillator2.frequency.setValueAtTime(659.25, audioContext.currentTime);
+    
+    oscillator1.type = 'sine';
+    oscillator2.type = 'sine';
+    
+    // Quick fade in and out for a soft sound
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+    
+    oscillator1.start(audioContext.currentTime);
+    oscillator2.start(audioContext.currentTime);
+    oscillator1.stop(audioContext.currentTime + 0.3);
+    oscillator2.stop(audioContext.currentTime + 0.3);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+};
+
+// Trigger haptic feedback if available
+const triggerHapticFeedback = () => {
+  try {
+    if ('vibrate' in navigator) {
+      // Short double vibration pattern
+      navigator.vibrate([50, 30, 50]);
+    }
+  } catch (e) {
+    console.log('Haptic feedback not supported');
+  }
+};
+
 export default function ScanCareTag() {
   const navigate = useNavigate();
   const [scanState, setScanState] = useState<ScanState>('scanning');
   const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string | null } | null>(null);
   const [isNewPatient, setIsNewPatient] = useState(false);
 
+  const onTagDetected = useCallback(() => {
+    playDetectionSound();
+    triggerHapticFeedback();
+  }, []);
+
   useEffect(() => {
     const runScanSimulation = async () => {
       await new Promise(resolve => setTimeout(resolve, 4000));
       setScanState('detected');
+      onTagDetected();
       await new Promise(resolve => setTimeout(resolve, 600));
       setScanState('loading');
 
