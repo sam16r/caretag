@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wifi, CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -92,6 +92,19 @@ export default function ScanCareTag() {
   const [isNewPatient, setIsNewPatient] = useState(false);
   const [manualId, setManualId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const simulationCancelledRef = useRef(false);
+
+  // Cancel simulation when switching to manual mode
+  const switchToManual = useCallback(() => {
+    simulationCancelledRef.current = true;
+    setScanState('manual');
+  }, []);
+
+  // Resume scanning mode
+  const switchToScanning = useCallback(() => {
+    simulationCancelledRef.current = false;
+    setScanState('scanning');
+  }, []);
 
   const onTagDetected = useCallback(() => {
     playDetectionSound();
@@ -159,26 +172,24 @@ export default function ScanCareTag() {
   };
 
   useEffect(() => {
-    let isCancelled = false;
-
     const runScanSimulation = async () => {
       await new Promise(resolve => setTimeout(resolve, 4000));
       
       // Stop if user switched to manual mode
-      if (isCancelled) return;
+      if (simulationCancelledRef.current) return;
       
       setScanState('detected');
       onTagDetected();
       await new Promise(resolve => setTimeout(resolve, 600));
       
-      if (isCancelled) return;
+      if (simulationCancelledRef.current) return;
       setScanState('loading');
 
       try {
         const isNew = Math.random() > 0.3;
         
         if (isNew) {
-          if (isCancelled) return;
+          if (simulationCancelledRef.current) return;
           setScanState('creating');
           setIsNewPatient(true);
           
@@ -190,16 +201,16 @@ export default function ScanCareTag() {
             .single();
           
           if (insertError) throw insertError;
-          if (isCancelled) return;
+          if (simulationCancelledRef.current) return;
           
           setPatient(newPatient);
           toast.success('New patient registered!');
           
           await new Promise(resolve => setTimeout(resolve, 1200));
-          if (isCancelled) return;
+          if (simulationCancelledRef.current) return;
           setScanState('redirecting');
           await new Promise(resolve => setTimeout(resolve, 400));
-          if (isCancelled) return;
+          if (simulationCancelledRef.current) return;
           navigate(`/patients/${newPatient.id}`);
         } else {
           const { data, error } = await supabase
@@ -208,7 +219,7 @@ export default function ScanCareTag() {
             .limit(10);
 
           if (error) throw error;
-          if (isCancelled) return;
+          if (simulationCancelledRef.current) return;
 
           if (data && data.length > 0) {
             const randomPatient = data[Math.floor(Math.random() * data.length)];
@@ -216,13 +227,13 @@ export default function ScanCareTag() {
             toast.success('Patient found!');
             
             await new Promise(resolve => setTimeout(resolve, 1200));
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             setScanState('redirecting');
             await new Promise(resolve => setTimeout(resolve, 400));
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             navigate(`/patients/${randomPatient.id}`);
           } else {
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             setScanState('creating');
             setIsNewPatient(true);
             
@@ -234,22 +245,22 @@ export default function ScanCareTag() {
               .single();
             
             if (insertError) throw insertError;
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             
             setPatient(newPatient);
             toast.success('New patient registered!');
             
             await new Promise(resolve => setTimeout(resolve, 1200));
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             setScanState('redirecting');
             await new Promise(resolve => setTimeout(resolve, 400));
-            if (isCancelled) return;
+            if (simulationCancelledRef.current) return;
             navigate(`/patients/${newPatient.id}`);
           }
         }
       } catch (err) {
         console.error('Scan error:', err);
-        if (!isCancelled) {
+        if (!simulationCancelledRef.current) {
           toast.error('Failed to process CareTag');
           navigate(-1);
         }
@@ -260,10 +271,6 @@ export default function ScanCareTag() {
     if (scanState === 'scanning') {
       runScanSimulation();
     }
-
-    return () => {
-      isCancelled = true;
-    };
   }, [navigate, scanState, onTagDetected]);
 
   const isActive = scanState === 'scanning';
@@ -337,7 +344,7 @@ export default function ScanCareTag() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setScanState('manual')}
+                onClick={switchToManual}
                 className="mt-4 text-muted-foreground"
               >
                 <Keyboard className="h-4 w-4 mr-2" />
@@ -384,7 +391,7 @@ export default function ScanCareTag() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setScanState('scanning')}
+                onClick={switchToScanning}
                 className="w-full text-muted-foreground"
               >
                 Back to scanning
