@@ -1,12 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScanLine, Camera, X, User, AlertCircle } from 'lucide-react';
+import { ScanLine, Camera, X, User, AlertCircle, Smartphone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNfcScanner } from '@/hooks/useNfcScanner';
+import { useQrScanner } from '@/hooks/useQrScanner';
 
 interface CareTagScannerProps {
   onPatientFound?: (patient: any) => void;
@@ -15,40 +17,13 @@ interface CareTagScannerProps {
 export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [scanning, setScanning] = useState(false);
   const [manualId, setManualId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [scanMode, setScanMode] = useState<'idle' | 'nfc' | 'qr'>('idle');
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setScanning(true);
-      setError(null);
-    } catch (err) {
-      console.error('Camera access denied:', err);
-      setError('Camera access denied. Please use manual entry or grant camera permissions.');
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setScanning(false);
-  };
-
-  const searchPatient = async (caretagId: string) => {
+  const searchPatient = useCallback(async (caretagId: string) => {
     if (!caretagId.trim()) return;
     
     setIsSearching(true);
@@ -60,18 +35,17 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
         .from('patients')
         .select('*')
         .eq('caretag_id', caretagId.trim().toUpperCase())
-        .single();
+        .maybeSingle();
 
-      if (queryError) {
-        if (queryError.code === 'PGRST116') {
-          setError(`No patient found with CareTag ID: ${caretagId}`);
-        } else {
-          throw queryError;
-        }
+      if (queryError) throw queryError;
+
+      if (!data) {
+        setError(`No patient found with CareTag ID: ${caretagId}`);
         return;
       }
 
       setPatient(data);
+      toast.success(`Found patient: ${data.full_name}`);
       if (onPatientFound) {
         onPatientFound(data);
       }
@@ -80,7 +54,45 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
       setError('Failed to search for patient. Please try again.');
     } finally {
       setIsSearching(false);
+      setScanMode('idle');
     }
+  }, [onPatientFound]);
+
+  const {
+    isSupported: nfcSupported,
+    isScanning: nfcScanning,
+    error: nfcError,
+    startScan: startNfcScan,
+    stopScan: stopNfcScan,
+  } = useNfcScanner(searchPatient);
+
+  const {
+    isScanning: qrScanning,
+    error: qrError,
+    startScan: startQrScan,
+    stopScan: stopQrScan,
+  } = useQrScanner(searchPatient);
+
+  const handleStartNfc = async () => {
+    setScanMode('nfc');
+    setError(null);
+    await startNfcScan();
+  };
+
+  const handleStartQr = async () => {
+    setScanMode('qr');
+    setError(null);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await startQrScan('dialog-qr-reader');
+  };
+
+  const handleStopScan = async () => {
+    if (scanMode === 'nfc') {
+      stopNfcScan();
+    } else if (scanMode === 'qr') {
+      await stopQrScan();
+    }
+    setScanMode('idle');
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -97,12 +109,16 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
 
   useEffect(() => {
     if (!open) {
-      stopCamera();
+      stopNfcScan();
+      stopQrScan();
       setPatient(null);
       setError(null);
       setManualId('');
+      setScanMode('idle');
     }
-  }, [open]);
+  }, [open, stopNfcScan, stopQrScan]);
+
+  const displayError = error || nfcError || qrError;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -124,47 +140,61 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Camera view */}
+          {/* Scan options or active scan */}
           <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-            {scanning ? (
+            {scanMode === 'qr' ? (
               <>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-                {/* Scan overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 border-2 border-primary rounded-2xl relative">
+                <div id="dialog-qr-reader" className="w-full h-full" />
+                {/* Scan overlay corners */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-48 h-48 relative">
                     <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl" />
                     <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl" />
                     <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl" />
                     <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-full h-0.5 bg-primary/50 animate-pulse" />
-                    </div>
                   </div>
                 </div>
                 <Button
                   variant="secondary"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={stopCamera}
+                  onClick={handleStopScan}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </>
+            ) : scanMode === 'nfc' ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
+                <div className="relative">
+                  <Smartphone className="h-16 w-16 text-primary animate-pulse" />
+                  <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Hold CareTag near device...
+                </p>
+                <Button variant="outline" onClick={handleStopScan} className="gap-2">
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
-                <Camera className="h-16 w-16 text-muted-foreground/50" />
+                <ScanLine className="h-16 w-16 text-muted-foreground/50" />
                 <p className="text-sm text-muted-foreground text-center">
-                  Camera preview will appear here
+                  Choose a scanning method
                 </p>
-                <Button onClick={startCamera} className="gap-2">
-                  <Camera className="h-4 w-4" />
-                  Start Camera
-                </Button>
+                <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                  {nfcSupported && (
+                    <Button onClick={handleStartNfc} variant="outline" className="gap-2 w-full">
+                      <Smartphone className="h-4 w-4" />
+                      NFC Scan
+                    </Button>
+                  )}
+                  <Button onClick={handleStartQr} className="gap-2 w-full">
+                    <Camera className="h-4 w-4" />
+                    QR / Barcode Scan
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -194,11 +224,11 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
           </form>
 
           {/* Error */}
-          {error && (
+          {displayError && (
             <Card className="border-destructive bg-destructive/10">
               <CardContent className="p-3 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-destructive" />
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive">{displayError}</p>
               </CardContent>
             </Card>
           )}
