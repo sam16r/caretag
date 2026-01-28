@@ -24,17 +24,17 @@
     --primary: 217 72% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Subtle gray-blue */
-    --secondary: 220 14% 96%;
+    /* Secondary - Soft blue tint */
+    --secondary: 214 32% 91%;
     --secondary-foreground: 222 47% 20%;
 
     /* Muted */
-    --muted: 220 14% 96%;
+    --muted: 214 32% 91%;
     --muted-foreground: 220 9% 46%;
 
-    /* Accent - Refined indigo */
-    --accent: 243 55% 58%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Blue-aligned */
+    --accent: 214 40% 92%;
+    --accent-foreground: 217 72% 40%;
 
     /* Destructive - Professional red */
     --destructive: 0 65% 51%;
@@ -96,16 +96,16 @@
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 222 30% 14%;
+    --secondary: 217 30% 18%;
     --secondary-foreground: 213 31% 91%;
 
     /* Muted */
-    --muted: 222 30% 14%;
+    --muted: 217 30% 18%;
     --muted-foreground: 215 20% 55%;
 
-    /* Accent */
-    --accent: 243 55% 62%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Blue-aligned */
+    --accent: 217 40% 22%;
+    --accent-foreground: 210 40% 90%;
 
     /* Destructive */
     --destructive: 0 60% 50%;
