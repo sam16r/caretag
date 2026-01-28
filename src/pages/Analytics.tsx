@@ -123,6 +123,7 @@ export default function Analytics() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="patients">Patient Demographics</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="health">Health Insights</TabsTrigger>
@@ -291,6 +292,253 @@ export default function Analytics() {
                       <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Patients" />
                     </BarChart>
                   </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Revenue Tab */}
+        <TabsContent value="revenue" className="space-y-4">
+          {/* Revenue KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-24" /> : (
+                  <div className="text-2xl font-bold text-primary">
+                    ₹{(data?.totalRevenue || 0).toLocaleString('en-IN')}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Collected</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-24" /> : (
+                  <div className="text-2xl font-bold text-chart-2">
+                    ₹{(data?.paidRevenue || 0).toLocaleString('en-IN')}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-24" /> : (
+                  <div className="text-2xl font-bold text-chart-4">
+                    ₹{(data?.pendingRevenue || 0).toLocaleString('en-IN')}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Overdue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? <Skeleton className="h-8 w-24" /> : (
+                  <div className="text-2xl font-bold text-destructive">
+                    ₹{(data?.overdueRevenue || 0).toLocaleString('en-IN')}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Monthly Revenue Trend */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Monthly Revenue Trend
+              </CardTitle>
+              <CardDescription>
+                Revenue performance over the last 12 months
+                {data?.revenueGrowth !== undefined && (
+                  <Badge 
+                    variant={data.revenueGrowth >= 0 ? "default" : "destructive"} 
+                    className="ml-2"
+                  >
+                    {data.revenueGrowth >= 0 ? '+' : ''}{data.revenueGrowth.toFixed(1)}% vs last month
+                  </Badge>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-[350px] w-full" />
+              ) : data?.monthlyRevenue && data.monthlyRevenue.length > 0 ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={data.monthlyRevenue}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorPaid" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="shortMonth" 
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }} 
+                    />
+                    <YAxis 
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, '']}
+                      labelFormatter={(label) => data.monthlyRevenue.find(m => m.shortMonth === label)?.month || label}
+                    />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="total"
+                      stroke="hsl(var(--primary))"
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
+                      name="Total Invoiced"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="paid"
+                      stroke="hsl(var(--chart-2))"
+                      fillOpacity={1}
+                      fill="url(#colorPaid)"
+                      name="Collected"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+                  No revenue data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Invoice Status & Collection Rate */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Invoice Status Distribution
+                </CardTitle>
+                <CardDescription>Breakdown of invoice payment status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Skeleton className="h-[250px] w-full" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Paid', value: data?.invoiceStatus.paid || 0, color: 'hsl(160, 60%, 45%)' },
+                          { name: 'Pending', value: data?.invoiceStatus.pending || 0, color: 'hsl(45, 90%, 50%)' },
+                          { name: 'Overdue', value: data?.invoiceStatus.overdue || 0, color: 'hsl(0, 75%, 55%)' },
+                          { name: 'Cancelled', value: data?.invoiceStatus.cancelled || 0, color: 'hsl(220, 10%, 50%)' },
+                        ].filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {[
+                          { name: 'Paid', value: data?.invoiceStatus.paid || 0, color: 'hsl(160, 60%, 45%)' },
+                          { name: 'Pending', value: data?.invoiceStatus.pending || 0, color: 'hsl(45, 90%, 50%)' },
+                          { name: 'Overdue', value: data?.invoiceStatus.overdue || 0, color: 'hsl(0, 75%, 55%)' },
+                          { name: 'Cancelled', value: data?.invoiceStatus.cancelled || 0, color: 'hsl(220, 10%, 50%)' },
+                        ].filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Collection Performance</CardTitle>
+                <CardDescription>Payment collection rate analysis</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {isLoading ? (
+                  <Skeleton className="h-[200px] w-full" />
+                ) : (
+                  <>
+                    {/* Collection Rate */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Collection Rate</span>
+                        <span className="font-medium">
+                          {data?.totalRevenue
+                            ? ((data.paidRevenue / data.totalRevenue) * 100).toFixed(1)
+                            : 0}%
+                        </span>
+                      </div>
+                      <div className="h-3 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-chart-2 transition-all"
+                          style={{
+                            width: `${data?.totalRevenue
+                              ? (data.paidRevenue / data.totalRevenue) * 100
+                              : 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* This Month vs Last Month */}
+                    <div className="grid grid-cols-2 gap-4 pt-4">
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">This Month</p>
+                        <p className="text-xl font-bold text-primary">
+                          ₹{(data?.currentMonthRevenue || 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Last Month</p>
+                        <p className="text-xl font-bold">
+                          ₹{(data?.previousMonthRevenue || 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Total Invoices */}
+                    <div className="flex justify-between items-center pt-4 border-t">
+                      <span className="text-sm text-muted-foreground">Total Invoices (12 months)</span>
+                      <span className="font-semibold">{data?.totalInvoices || 0}</span>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
