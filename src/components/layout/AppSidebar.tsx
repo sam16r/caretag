@@ -74,29 +74,31 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary flex-shrink-0">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary flex-shrink-0 transition-transform duration-200">
             <Activity className="h-5 w-5 text-primary-foreground" />
           </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">
-                CareTag
-              </span>
-              <span className="text-xs text-sidebar-foreground/50">Healthcare Platform</span>
-            </div>
-          )}
+          <div className={cn(
+            "flex flex-col transition-all duration-200 ease-in-out",
+            collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          )}>
+            <span className="text-sm font-semibold text-sidebar-foreground whitespace-nowrap">
+              CareTag
+            </span>
+            <span className="text-xs text-sidebar-foreground/50 whitespace-nowrap">Healthcare Platform</span>
+          </div>
         </div>
       </SidebarHeader>
 
       {/* Navigation */}
       <SidebarContent className="px-2 py-3">
         <SidebarGroup>
-          {!collapsed && (
-            <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
-              Menu
-            </p>
-          )}
+          <p className={cn(
+            "px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider transition-all duration-200 ease-in-out overflow-hidden whitespace-nowrap",
+            collapsed ? "h-0 opacity-0 mb-0" : "h-auto opacity-100"
+          )}>
+            Menu
+          </p>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-0.5">
               {navItems.map((item) => {
@@ -120,12 +122,15 @@ export function AppSidebar() {
                       <button
                         onClick={() => navigate(item.url)}
                         className={cn(
-                          "flex items-center w-full",
+                          "flex items-center w-full transition-all duration-200 ease-in-out",
                           collapsed ? "justify-center px-0" : "gap-3 px-3"
                         )}
                       >
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
-                        {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
+                        <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200" />
+                        <span className={cn(
+                          "text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap overflow-hidden",
+                          collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                        )}>{item.title}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -139,32 +144,33 @@ export function AppSidebar() {
       {/* User Section */}
       <SidebarFooter className="p-2 border-t border-sidebar-border">
         <div className={cn(
-          'flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent transition-colors duration-150',
+          'flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent transition-all duration-200 ease-in-out overflow-hidden',
           collapsed && 'justify-center'
         )}>
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 flex-shrink-0 transition-transform duration-200">
             <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
               {getInitials(user?.email || '')}
             </AvatarFallback>
           </Avatar>
-          {!collapsed && (
-            <>
-              <div className="flex flex-1 flex-col min-w-0">
-                <span className="text-sm font-medium text-sidebar-foreground truncate">
-                  {user?.email?.split('@')[0]}
-                </span>
-                <span className="text-xs text-sidebar-foreground/50 capitalize">
-                  {role || 'User'}
-                </span>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="p-1.5 rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </>
-          )}
+          <div className={cn(
+            "flex flex-1 items-center gap-2 min-w-0 transition-all duration-200 ease-in-out",
+            collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          )}>
+            <div className="flex flex-1 flex-col min-w-0">
+              <span className="text-sm font-medium text-sidebar-foreground truncate whitespace-nowrap">
+                {user?.email?.split('@')[0]}
+              </span>
+              <span className="text-xs text-sidebar-foreground/50 capitalize whitespace-nowrap">
+                {role || 'User'}
+              </span>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150 flex-shrink-0"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
