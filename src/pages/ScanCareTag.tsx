@@ -1,16 +1,48 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ScanLine, Wifi, CheckCircle2, User } from 'lucide-react';
+import { ScanLine, Wifi, CheckCircle2, User, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 
-type ScanState = 'scanning' | 'detected' | 'loading' | 'redirecting';
+type ScanState = 'scanning' | 'detected' | 'loading' | 'creating' | 'redirecting';
+
+// Generate a unique CareTag ID
+const generateCareTagId = () => {
+  const year = new Date().getFullYear();
+  const randomNum = Math.floor(Math.random() * 9000) + 1000;
+  return `CT-${year}-${randomNum}`;
+};
+
+// Generate random patient data for simulation
+const generateRandomPatient = () => {
+  const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn', 'Avery', 'Skyler', 'Cameron'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const genders = ['Male', 'Female'];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const birthYear = 1950 + Math.floor(Math.random() * 60);
+  const birthMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+  const birthDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+  
+  return {
+    full_name: `${firstName} ${lastName}`,
+    caretag_id: generateCareTagId(),
+    date_of_birth: `${birthYear}-${birthMonth}-${birthDay}`,
+    gender: genders[Math.floor(Math.random() * genders.length)],
+    blood_group: bloodGroups[Math.floor(Math.random() * bloodGroups.length)],
+    phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
+  };
+};
 
 export default function ScanCareTag() {
   const navigate = useNavigate();
   const [scanState, setScanState] = useState<ScanState>('scanning');
-  const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string } | null>(null);
+  const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string | null } | null>(null);
+  const [isNewPatient, setIsNewPatient] = useState(false);
   const [pulseRing, setPulseRing] = useState(0);
 
   // Animate the scanning rings
@@ -36,35 +68,82 @@ export default function ScanCareTag() {
       setScanState('loading');
 
       try {
-        // Fetch a random patient to simulate successful scan
-        const { data, error } = await supabase
-          .from('patients')
-          .select('id, full_name, caretag_id, blood_group')
-          .limit(10);
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          // Pick a random patient
-          const randomPatient = data[Math.floor(Math.random() * data.length)];
-          setPatient(randomPatient);
+        // Simulate: 70% chance of new patient, 30% chance of existing patient
+        const isNew = Math.random() > 0.3;
+        
+        if (isNew) {
+          // Create a new patient
+          setScanState('creating');
+          setIsNewPatient(true);
           
-          toast.success('CareTag detected successfully!');
+          const newPatientData = generateRandomPatient();
           
-          // Show found state briefly
+          const { data: newPatient, error: insertError } = await supabase
+            .from('patients')
+            .insert(newPatientData)
+            .select('id, full_name, caretag_id, blood_group')
+            .single();
+          
+          if (insertError) throw insertError;
+          
+          setPatient(newPatient);
+          toast.success('New patient registered from CareTag!');
+          
+          // Show created state briefly
           await new Promise(resolve => setTimeout(resolve, 1500));
           setScanState('redirecting');
           
           // Navigate to patient details
           await new Promise(resolve => setTimeout(resolve, 500));
-          navigate(`/patients/${randomPatient.id}`);
+          navigate(`/patients/${newPatient.id}`);
         } else {
-          toast.error('No patients found in the system');
-          navigate(-1);
+          // Fetch an existing patient
+          const { data, error } = await supabase
+            .from('patients')
+            .select('id, full_name, caretag_id, blood_group')
+            .limit(10);
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            const randomPatient = data[Math.floor(Math.random() * data.length)];
+            setPatient(randomPatient);
+            
+            toast.success('Existing patient found!');
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setScanState('redirecting');
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            navigate(`/patients/${randomPatient.id}`);
+          } else {
+            // No existing patients, create a new one
+            setScanState('creating');
+            setIsNewPatient(true);
+            
+            const newPatientData = generateRandomPatient();
+            
+            const { data: newPatient, error: insertError } = await supabase
+              .from('patients')
+              .insert(newPatientData)
+              .select('id, full_name, caretag_id, blood_group')
+              .single();
+            
+            if (insertError) throw insertError;
+            
+            setPatient(newPatient);
+            toast.success('New patient registered from CareTag!');
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setScanState('redirecting');
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            navigate(`/patients/${newPatient.id}`);
+          }
         }
       } catch (err) {
         console.error('Scan error:', err);
-        toast.error('Failed to read CareTag. Please try again.');
+        toast.error('Failed to process CareTag. Please try again.');
         navigate(-1);
       }
     };
@@ -98,7 +177,7 @@ export default function ScanCareTag() {
               <div className={`absolute w-64 h-64 -ml-32 -mt-32 rounded-full border-2 transition-all duration-300 ${pulseRing === 2 ? 'border-primary scale-105' : 'border-primary/10'}`} />
             </>
           )}
-          {(scanState === 'detected' || scanState === 'loading' || scanState === 'redirecting') && (
+          {(scanState === 'detected' || scanState === 'loading' || scanState === 'creating' || scanState === 'redirecting') && (
             <div className="absolute w-48 h-48 -ml-24 -mt-24 rounded-full bg-success/20 animate-pulse" />
           )}
         </div>
@@ -110,6 +189,8 @@ export default function ScanCareTag() {
         <div className={`relative p-6 rounded-full transition-all duration-500 ${
           scanState === 'scanning' 
             ? 'bg-primary/10' 
+            : scanState === 'creating'
+            ? 'bg-primary/10'
             : 'bg-success/10'
         }`}>
           {scanState === 'scanning' && (
@@ -126,6 +207,9 @@ export default function ScanCareTag() {
           )}
           {scanState === 'detected' && (
             <ScanLine className="h-14 w-14 text-success animate-scale-in" />
+          )}
+          {scanState === 'creating' && (
+            <UserPlus className="h-14 w-14 text-primary animate-pulse" />
           )}
           {(scanState === 'loading' || scanState === 'redirecting') && (
             <CheckCircle2 className="h-14 w-14 text-success" />
@@ -162,19 +246,44 @@ export default function ScanCareTag() {
             </>
           )}
 
+          {scanState === 'creating' && (
+            <>
+              <h1 className="text-xl font-bold text-primary">
+                New CareTag Found
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Registering new patient in the system...
+              </p>
+              <div className="flex items-center justify-center gap-1.5 pt-2">
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </>
+          )}
+
           {scanState === 'loading' && patient && (
             <>
               <h1 className="text-xl font-bold text-success">
-                Patient Found
+                {isNewPatient ? 'Patient Registered!' : 'Patient Found'}
               </h1>
-              <Card className="border-success/30 bg-success/5 mt-3 animate-fade-in">
+              <Card className={`mt-3 animate-fade-in ${isNewPatient ? 'border-primary/30 bg-primary/5' : 'border-success/30 bg-success/5'}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
-                      <User className="h-5 w-5 text-success" />
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${isNewPatient ? 'bg-primary/20' : 'bg-success/20'}`}>
+                      {isNewPatient ? (
+                        <UserPlus className="h-5 w-5 text-primary" />
+                      ) : (
+                        <User className="h-5 w-5 text-success" />
+                      )}
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold">{patient.full_name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{patient.full_name}</p>
+                        {isNewPatient && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">NEW</span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {patient.caretag_id} {patient.blood_group && `• ${patient.blood_group}`}
                       </p>
@@ -182,6 +291,11 @@ export default function ScanCareTag() {
                   </div>
                 </CardContent>
               </Card>
+              {isNewPatient && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Patient added to database successfully
+                </p>
+              )}
             </>
           )}
 
