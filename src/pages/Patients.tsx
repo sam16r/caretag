@@ -64,7 +64,7 @@ export default function Patients() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2 shadow-sm">
+          <Button variant="outline" className="gap-2 shadow-sm" onClick={() => navigate('/scan')}>
             <ScanLine className="h-4 w-4" />
             Scan CareTag
           </Button>
