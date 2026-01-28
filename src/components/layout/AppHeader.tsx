@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Moon, Sun, Search, ScanLine, Command, Sparkles } from 'lucide-react';
+import { Bell, Moon, Sun, Search, ScanLine, Command } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -31,84 +31,79 @@ export function AppHeader() {
   };
 
   const notifications = [
-    { id: 1, title: 'Critical Alert', message: 'Patient vitals below threshold', type: 'emergency', time: '2m ago', emoji: '🚨' },
-    { id: 2, title: 'Appointment', message: 'Upcoming appointment in 15 minutes', type: 'info', time: '10m ago', emoji: '📅' },
-    { id: 3, title: 'Lab Results', message: 'New lab results available', type: 'success', time: '1h ago', emoji: '🔬' },
+    { id: 1, title: 'Critical Alert', message: 'Patient vitals below threshold', type: 'emergency', time: '2m ago' },
+    { id: 2, title: 'Appointment', message: 'Upcoming appointment in 15 minutes', type: 'info', time: '10m ago' },
+    { id: 3, title: 'Lab Results', message: 'New lab results available', type: 'success', time: '1h ago' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-xl px-4 lg:px-6">
-      <SidebarTrigger className="h-10 w-10 rounded-2xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-all" />
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border bg-card/95 backdrop-blur-sm px-4 lg:px-6">
+      <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
 
-      {/* Divider */}
-      <div className="h-6 w-px bg-border hidden md:block" />
+      <div className="h-5 w-px bg-border hidden md:block" />
 
-      {/* Search - Playful */}
+      {/* Search */}
       <form onSubmit={handleSearch} className="flex-1 max-w-md">
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search patients... 🔍"
+            placeholder="Search patients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 pr-24 h-11 bg-secondary border-2 border-transparent rounded-2xl text-sm font-medium placeholder:text-muted-foreground/60 focus:bg-background focus:border-primary/50 transition-all"
+            className="pl-10 pr-20 h-9 bg-muted/50 border-0 focus:bg-background focus:ring-1 focus:ring-primary/20"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 text-[10px] text-muted-foreground/60">
-            <kbd className="px-2 py-1 rounded-lg bg-background border border-border font-bold">⌘</kbd>
-            <kbd className="px-2 py-1 rounded-lg bg-background border border-border font-bold">K</kbd>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-0.5 text-xs text-muted-foreground">
+            <kbd className="px-1.5 py-0.5 rounded bg-background border text-[10px]">⌘</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-background border text-[10px]">K</kbd>
           </div>
         </div>
       </form>
 
-      {/* Actions - Playful */}
-      <div className="flex items-center gap-2">
+      {/* Actions */}
+      <div className="flex items-center gap-1">
         {/* Scan Button */}
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={() => navigate('/scan')}
-          className="gap-2 hidden lg:flex rounded-full px-4 border-2 hover:border-primary/50"
+          className="gap-2 hidden lg:flex"
         >
           <ScanLine className="h-4 w-4" />
-          <span className="font-semibold">Scan</span>
+          Scan
         </Button>
 
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative rounded-2xl hover:bg-secondary">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card animate-pulse" />
+            <Button variant="ghost" size="icon" className="relative h-8 w-8">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-0 rounded-3xl overflow-hidden border-2">
-            <div className="px-4 py-3 bg-gradient-to-r from-primary/10 to-accent/10 border-b border-border">
+          <DropdownMenuContent align="end" className="w-72">
+            <div className="px-3 py-2 border-b">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Notifications
-                </h4>
-                <Badge className="bg-primary/20 text-primary border-0 font-bold">3 new</Badge>
+                <h4 className="font-medium text-sm">Notifications</h4>
+                <Badge variant="secondary" className="text-xs">3 new</Badge>
               </div>
             </div>
-            <div className="py-2">
-              {notifications.map((notification, i) => (
+            <div className="py-1">
+              {notifications.map((notification) => (
                 <DropdownMenuItem
                   key={notification.id}
-                  className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/50 transition-colors"
+                  className="flex items-start gap-3 px-3 py-2 cursor-pointer"
                 >
-                  <span className="text-xl mt-0.5">{notification.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm">{notification.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{notification.message}</p>
+                    <p className="font-medium text-sm">{notification.title}</p>
+                    <p className="text-xs text-muted-foreground">{notification.message}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium flex-shrink-0">{notification.time}</span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">{notification.time}</span>
                 </DropdownMenuItem>
               ))}
             </div>
-            <DropdownMenuSeparator className="m-0" />
-            <div className="p-2">
-              <Button variant="ghost" className="w-full rounded-2xl text-primary hover:text-primary hover:bg-primary/5 font-bold">
+            <DropdownMenuSeparator />
+            <div className="p-1">
+              <Button variant="ghost" size="sm" className="w-full text-primary">
                 View all notifications
               </Button>
             </div>
@@ -120,9 +115,9 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           onClick={() => setShortcutsOpen(true)}
-          className="rounded-2xl hidden md:flex hover:bg-secondary"
+          className="hidden md:flex h-8 w-8"
         >
-          <Command className="h-5 w-5" />
+          <Command className="h-4 w-4" />
         </Button>
 
         {/* Theme Toggle */}
@@ -130,12 +125,12 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="rounded-2xl hover:bg-secondary"
+          className="h-8 w-8"
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-4 w-4" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-4 w-4" />
           )}
         </Button>
       </div>

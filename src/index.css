@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CareTag - Blinkit/Apollo Playful Design System */
+/* CareTag - Professional Corporate Design System */
 
 @layer base {
   :root {
-    /* Playful light palette - vibrant & friendly */
-    --background: 210 40% 98%;
+    /* Professional light palette - clean & trustworthy */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
-    /* Cards - Pure white with playful feel */
+    /* Cards - Clean white */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
@@ -20,66 +20,66 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Vibrant blue (Blinkit-inspired) */
-    --primary: 217 91% 60%;
+    /* Primary - Professional blue */
+    --primary: 217 72% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft lavender */
-    --secondary: 240 60% 97%;
+    /* Secondary - Subtle gray-blue */
+    --secondary: 220 14% 96%;
     --secondary-foreground: 222 47% 20%;
 
     /* Muted */
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
 
-    /* Accent - Electric purple */
-    --accent: 270 95% 65%;
+    /* Accent - Refined indigo */
+    --accent: 243 55% 58%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive - Coral red */
-    --destructive: 0 84% 60%;
+    /* Destructive - Professional red */
+    --destructive: 0 65% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Warning - Sunny amber */
-    --warning: 38 92% 50%;
+    /* Warning - Muted amber */
+    --warning: 38 75% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Success - Fresh mint */
-    --success: 158 64% 52%;
+    /* Success - Professional teal */
+    --success: 158 50% 45%;
     --success-foreground: 0 0% 100%;
 
     /* Emergency */
-    --emergency: 0 84% 60%;
+    --emergency: 0 65% 51%;
     --emergency-foreground: 0 0% 100%;
 
     /* Borders - Subtle */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --ring: 217 72% 53%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
-    /* Playful color tokens */
-    --playful-blue: 217 91% 60%;
-    --playful-purple: 270 95% 65%;
-    --playful-pink: 330 85% 65%;
-    --playful-orange: 25 95% 55%;
-    --playful-teal: 175 75% 45%;
-    --playful-green: 158 64% 52%;
+    /* Semantic color tokens */
+    --color-blue: 217 72% 53%;
+    --color-indigo: 243 55% 58%;
+    --color-teal: 175 55% 42%;
+    --color-green: 158 50% 45%;
+    --color-amber: 38 75% 50%;
+    --color-red: 0 65% 51%;
 
-    /* Sidebar - Dark with playful accent */
+    /* Sidebar - Dark professional */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 217 72% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 47% 16%;
     --sidebar-accent-foreground: 213 31% 91%;
     --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 217 72% 53%;
   }
 
   .dark {
-    /* Dark mode - Rich & vibrant */
+    /* Dark mode - Professional & refined */
     --background: 222 47% 6%;
     --foreground: 213 31% 91%;
 
@@ -92,7 +92,7 @@
     --popover-foreground: 213 31% 91%;
 
     /* Primary */
-    --primary: 217 91% 65%;
+    --primary: 217 72% 58%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
@@ -104,39 +104,39 @@
     --muted-foreground: 215 20% 55%;
 
     /* Accent */
-    --accent: 270 95% 65%;
+    --accent: 243 55% 62%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive */
-    --destructive: 0 72% 51%;
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
     /* Warning */
-    --warning: 38 92% 50%;
+    --warning: 38 70% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Success */
-    --success: 158 64% 52%;
+    --success: 158 50% 45%;
     --success-foreground: 0 0% 100%;
 
     /* Emergency */
-    --emergency: 0 72% 51%;
+    --emergency: 0 60% 50%;
     --emergency-foreground: 0 0% 100%;
 
     /* Borders */
     --border: 222 30% 18%;
     --input: 222 30% 18%;
-    --ring: 217 91% 65%;
+    --ring: 217 72% 58%;
 
     /* Sidebar */
     --sidebar-background: 222 47% 6%;
     --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 65%;
+    --sidebar-primary: 217 72% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 47% 11%;
     --sidebar-accent-foreground: 213 31% 91%;
     --sidebar-border: 222 30% 14%;
-    --sidebar-ring: 217 91% 65%;
+    --sidebar-ring: 217 72% 58%;
   }
 }
 
@@ -146,7 +146,7 @@
   }
 
   html {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -158,7 +158,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight text-foreground;
+    @apply font-semibold tracking-tight text-foreground;
   }
 
   h1 { @apply text-2xl; }
@@ -167,154 +167,75 @@
 }
 
 @layer components {
-  /* Playful Card Styles */
-  .card-playful {
-    @apply bg-card rounded-3xl border-2 border-transparent shadow-lg transition-all duration-300;
-  }
-
-  .card-playful:hover {
-    @apply border-primary/30 shadow-xl;
-    transform: translateY(-4px);
-  }
-
-  .card-interactive {
-    @apply bg-card rounded-3xl border-2 border-transparent shadow-lg transition-all duration-300 cursor-pointer;
-  }
-
-  .card-interactive:hover {
-    @apply border-primary/30;
-    box-shadow: 0 20px 40px -12px hsl(var(--primary) / 0.25);
-    transform: translateY(-4px);
+  /* Professional Card Styles */
+  .card-clean {
+    @apply bg-card rounded-lg border border-border shadow-sm;
   }
 
   .card-elevated {
-    @apply bg-card rounded-3xl border border-border shadow-xl;
+    @apply bg-card rounded-lg border border-border shadow-md;
   }
 
-  /* Playful Stat Cards */
+  .card-interactive {
+    @apply bg-card rounded-lg border border-border shadow-sm transition-all duration-200 cursor-pointer;
+  }
+
+  .card-interactive:hover {
+    @apply border-primary/40 shadow-md;
+  }
+
+  /* Professional Stat Cards */
   .stat-card-blue {
-    @apply rounded-3xl p-5 transition-all duration-300 cursor-pointer;
-    background: linear-gradient(135deg, hsl(217 91% 95%) 0%, hsl(217 91% 98%) 100%);
+    @apply rounded-lg p-4 border border-primary/20;
+    background: hsl(var(--primary) / 0.05);
   }
 
-  .stat-card-blue:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -12px hsl(217 91% 60% / 0.3);
-  }
-
-  .stat-card-purple {
-    @apply rounded-3xl p-5 transition-all duration-300 cursor-pointer;
-    background: linear-gradient(135deg, hsl(270 95% 95%) 0%, hsl(270 95% 98%) 100%);
-  }
-
-  .stat-card-purple:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -12px hsl(270 95% 65% / 0.3);
+  .stat-card-indigo {
+    @apply rounded-lg p-4 border border-accent/20;
+    background: hsl(var(--accent) / 0.05);
   }
 
   .stat-card-green {
-    @apply rounded-3xl p-5 transition-all duration-300 cursor-pointer;
-    background: linear-gradient(135deg, hsl(158 64% 92%) 0%, hsl(158 64% 97%) 100%);
+    @apply rounded-lg p-4 border border-success/20;
+    background: hsl(var(--success) / 0.05);
   }
 
-  .stat-card-green:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -12px hsl(158 64% 52% / 0.3);
-  }
-
-  .stat-card-orange {
-    @apply rounded-3xl p-5 transition-all duration-300 cursor-pointer;
-    background: linear-gradient(135deg, hsl(25 95% 92%) 0%, hsl(25 95% 97%) 100%);
-  }
-
-  .stat-card-orange:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -12px hsl(25 95% 55% / 0.3);
+  .stat-card-amber {
+    @apply rounded-lg p-4 border border-warning/20;
+    background: hsl(var(--warning) / 0.05);
   }
 
   .stat-card-red {
-    @apply rounded-3xl p-5 transition-all duration-300 cursor-pointer;
-    background: linear-gradient(135deg, hsl(0 84% 94%) 0%, hsl(0 84% 98%) 100%);
+    @apply rounded-lg p-4 border border-destructive/20;
+    background: hsl(var(--destructive) / 0.05);
   }
 
-  .stat-card-red:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -12px hsl(0 84% 60% / 0.3);
-  }
-
-  /* Playful Icon Containers */
-  .icon-playful {
-    @apply flex items-center justify-center rounded-2xl shadow-lg transition-all duration-300;
-  }
-
-  .icon-playful:hover {
-    transform: rotate(6deg) scale(1.1);
-  }
-
-  /* Pill Buttons */
-  .btn-pill {
-    @apply rounded-full px-6 py-2.5 font-semibold transition-all duration-300;
-  }
-
-  .btn-pill:hover {
-    transform: translateY(-2px);
-  }
-
-  .btn-pill:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  /* Playful Badge */
-  .badge-playful {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold;
-  }
-
-  /* Gradient Backgrounds */
-  .gradient-playful-blue {
-    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(240 95% 65%) 100%);
-  }
-
-  .gradient-playful-purple {
-    background: linear-gradient(135deg, hsl(270 95% 65%) 0%, hsl(330 85% 65%) 100%);
-  }
-
-  .gradient-playful-green {
-    background: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(175 75% 45%) 100%);
-  }
-
-  .gradient-playful-orange {
-    background: linear-gradient(135deg, hsl(25 95% 55%) 0%, hsl(38 92% 50%) 100%);
+  /* Icon Containers */
+  .icon-container {
+    @apply flex items-center justify-center rounded-lg;
   }
 
   /* Glass effect */
   .glass {
-    @apply bg-background/80 backdrop-blur-xl border border-border;
+    @apply bg-background/90 backdrop-blur-sm border border-border;
   }
 
-  /* Navigation - Playful */
+  /* Navigation */
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200;
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150;
     @apply text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent;
-  }
-
-  .nav-item:hover {
-    transform: translateX(4px);
   }
 
   .nav-item-active {
     @apply nav-item bg-primary text-primary-foreground;
   }
 
-  /* Input styles - Playful */
-  .input-playful {
-    @apply h-12 rounded-2xl border-2 border-border bg-background px-4 text-sm font-medium;
-    @apply placeholder:text-muted-foreground/60;
-    @apply focus:outline-none focus:ring-0 focus:border-primary;
-    @apply transition-all duration-200;
-  }
-
-  .input-playful:focus {
-    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
+  /* Input styles */
+  .input-clean {
+    @apply h-10 rounded-md border border-border bg-background px-3 text-sm;
+    @apply placeholder:text-muted-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
+    @apply transition-colors duration-150;
   }
 
   /* Divider */
@@ -324,7 +245,7 @@
 
   /* Focus ring */
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20;
   }
 }
 
@@ -334,136 +255,14 @@
     text-wrap: balance;
   }
 
-  /* Gradient text */
-  .text-gradient-playful {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-  }
-
-  /* Smooth transitions */
-  .transition-bounce {
-    @apply transition-all duration-300;
-    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  /* Playful Animations */
-  .animate-bounce-in {
-    animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  .animate-pop {
-    animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  .animate-wiggle {
-    animation: wiggle 0.5s ease-in-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
+  /* Subtle fade animation */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  @keyframes bounceIn {
-    0% { 
-      opacity: 0; 
-      transform: scale(0.3) translateY(20px); 
-    }
-    50% { 
-      transform: scale(1.05) translateY(-5px); 
-    }
-    100% { 
-      opacity: 1; 
-      transform: scale(1) translateY(0); 
-    }
-  }
-
-  @keyframes pop {
-    0% { transform: scale(0.95); opacity: 0; }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  @keyframes wiggle {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-5deg); }
-    75% { transform: rotate(5deg); }
-  }
-
-  @keyframes slideUp {
-    from { 
-      opacity: 0; 
-      transform: translateY(20px); 
-    }
-    to { 
-      opacity: 1; 
-      transform: translateY(0); 
-    }
+    animation: fadeIn 0.2s ease-out forwards;
   }
 
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from { 
-      opacity: 0; 
-      transform: scale(0.9); 
-    }
-    to { 
-      opacity: 1; 
-      transform: scale(1); 
-    }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  /* Stagger delays */
-  .delay-1 { animation-delay: 50ms; }
-  .delay-2 { animation-delay: 100ms; }
-  .delay-3 { animation-delay: 150ms; }
-  .delay-4 { animation-delay: 200ms; }
-  .delay-5 { animation-delay: 250ms; }
-  .delay-6 { animation-delay: 300ms; }
-
-  /* Hover Effects */
-  .hover-lift {
-    @apply transition-all duration-300;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-4px);
-  }
-
-  .hover-scale {
-    @apply transition-all duration-300;
-  }
-
-  .hover-scale:hover {
-    transform: scale(1.05);
-  }
-
-  .hover-glow {
-    @apply transition-all duration-300;
-  }
-
-  .hover-glow:hover {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
   }
 
   /* Scrollbar styling */

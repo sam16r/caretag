@@ -13,7 +13,6 @@ import {
   LogOut,
   Activity,
   PieChart,
-  Sparkles,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,26 +30,26 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
 const doctorNavItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard, emoji: '🏠' },
-  { title: 'Patients', url: '/patients', icon: Search, emoji: '👥' },
-  { title: 'Appointments', url: '/appointments', icon: Calendar, emoji: '📅' },
-  { title: 'Emergency', url: '/emergency', icon: AlertTriangle, emoji: '🚨' },
-  { title: 'Records', url: '/records', icon: FileText, emoji: '📋' },
-  { title: 'Prescriptions', url: '/prescriptions', icon: Pill, emoji: '💊' },
-  { title: 'Analytics', url: '/analytics', icon: PieChart, emoji: '📊' },
-  { title: 'Reports', url: '/reports', icon: BarChart3, emoji: '📈' },
-  { title: 'Devices', url: '/devices', icon: Smartphone, emoji: '📱' },
-  { title: 'Settings', url: '/settings', icon: Settings, emoji: '⚙️' },
+  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Patients', url: '/patients', icon: Search },
+  { title: 'Appointments', url: '/appointments', icon: Calendar },
+  { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
+  { title: 'Records', url: '/records', icon: FileText },
+  { title: 'Prescriptions', url: '/prescriptions', icon: Pill },
+  { title: 'Analytics', url: '/analytics', icon: PieChart },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
+  { title: 'Devices', url: '/devices', icon: Smartphone },
+  { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
 const adminNavItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard, emoji: '🏠' },
-  { title: 'Patients', url: '/patients', icon: Search, emoji: '👥' },
-  { title: 'Appointments', url: '/appointments', icon: Calendar, emoji: '📅' },
-  { title: 'Emergency', url: '/emergency', icon: AlertTriangle, emoji: '🚨' },
-  { title: 'Analytics', url: '/analytics', icon: PieChart, emoji: '📊' },
-  { title: 'Reports', url: '/reports', icon: BarChart3, emoji: '📈' },
-  { title: 'Settings', url: '/settings', icon: Settings, emoji: '⚙️' },
+  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Patients', url: '/patients', icon: Search },
+  { title: 'Appointments', url: '/appointments', icon: Calendar },
+  { title: 'Emergency', url: '/emergency', icon: AlertTriangle },
+  { title: 'Analytics', url: '/analytics', icon: PieChart },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
+  { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -73,34 +72,34 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
-      {/* Logo - Playful */}
+      {/* Logo */}
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent flex-shrink-0 shadow-lg hover:scale-105 transition-transform">
-            <Activity className="h-6 w-6 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary flex-shrink-0">
+            <Activity className="h-5 w-5 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-base font-bold text-sidebar-foreground flex items-center gap-1">
-                CareTag <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-sidebar-foreground">
+                CareTag
               </span>
-              <span className="text-[11px] text-sidebar-foreground/50 font-medium">Healthcare Platform</span>
+              <span className="text-xs text-sidebar-foreground/50">Healthcare Platform</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      {/* Navigation - Playful */}
-      <SidebarContent className="px-3 py-4">
+      {/* Navigation */}
+      <SidebarContent className="px-2 py-3">
         <SidebarGroup>
           {!collapsed && (
-            <p className="px-3 mb-3 text-[11px] font-bold text-sidebar-foreground/40 uppercase tracking-wider">
+            <p className="px-3 mb-2 text-xs font-medium text-sidebar-foreground/40 uppercase tracking-wider">
               Menu
             </p>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {navItems.map((item, index) => {
+            <SidebarMenu className="space-y-0.5">
+              {navItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 const isEmergency = item.title === 'Emergency';
                 
@@ -111,27 +110,19 @@ export function AppSidebar() {
                       isActive={isActive}
                       tooltip={item.title}
                       className={cn(
-                        'group transition-all duration-200 rounded-2xl h-11',
-                        isActive && !isEmergency && 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary hover:text-primary-foreground',
+                        'transition-colors duration-150 rounded-md h-9',
+                        isActive && !isEmergency && 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
                         isEmergency && !isActive && 'text-destructive hover:text-destructive hover:bg-destructive/10',
-                        isActive && isEmergency && 'bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 hover:bg-destructive',
+                        isActive && isEmergency && 'bg-destructive text-destructive-foreground hover:bg-destructive',
                         !isActive && !isEmergency && 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
                       )}
-                      style={{ animationDelay: `${index * 30}ms` }}
                     >
                       <button
                         onClick={() => navigate(item.url)}
                         className="flex items-center gap-3 w-full px-3"
                       >
-                        {collapsed ? (
-                          <item.icon className={cn(
-                            "h-5 w-5 flex-shrink-0 transition-transform duration-200",
-                            "group-hover:scale-110"
-                          )} />
-                        ) : (
-                          <span className="text-base">{item.emoji}</span>
-                        )}
-                        <span className="text-sm font-semibold">{item.title}</span>
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <span className="text-sm font-medium">{item.title}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -142,30 +133,30 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* User Section - Playful */}
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
+      {/* User Section */}
+      <SidebarFooter className="p-2 border-t border-sidebar-border">
         <div className={cn(
-          'flex items-center gap-3 p-3 rounded-2xl hover:bg-sidebar-accent transition-all duration-200',
+          'flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent transition-colors duration-150',
           collapsed && 'justify-center'
         )}>
-          <Avatar className="h-10 w-10 ring-2 ring-primary/30">
-            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-sm font-bold">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
               {getInitials(user?.email || '')}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <>
               <div className="flex flex-1 flex-col min-w-0">
-                <span className="text-sm font-bold text-sidebar-foreground truncate">
+                <span className="text-sm font-medium text-sidebar-foreground truncate">
                   {user?.email?.split('@')[0]}
                 </span>
-                <span className="text-[11px] text-sidebar-foreground/50 font-medium capitalize flex items-center gap-1">
-                  {role === 'admin' ? '👑' : '🩺'} {role || 'User'}
+                <span className="text-xs text-sidebar-foreground/50 capitalize">
+                  {role || 'User'}
                 </span>
               </div>
               <button
                 onClick={handleSignOut}
-                className="p-2 rounded-xl text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 hover:scale-105"
+                className="p-1.5 rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150"
               >
                 <LogOut className="h-4 w-4" />
               </button>
