@@ -119,10 +119,13 @@ export function AppSidebar() {
                     >
                       <button
                         onClick={() => navigate(item.url)}
-                        className="flex items-center gap-3 w-full px-3"
+                        className={cn(
+                          "flex items-center w-full",
+                          collapsed ? "justify-center px-0" : "gap-3 px-3"
+                        )}
                       >
                         <item.icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="text-sm font-medium">{item.title}</span>
+                        {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
