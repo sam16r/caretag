@@ -159,17 +159,26 @@ export default function ScanCareTag() {
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     const runScanSimulation = async () => {
       await new Promise(resolve => setTimeout(resolve, 4000));
+      
+      // Stop if user switched to manual mode
+      if (isCancelled) return;
+      
       setScanState('detected');
       onTagDetected();
       await new Promise(resolve => setTimeout(resolve, 600));
+      
+      if (isCancelled) return;
       setScanState('loading');
 
       try {
         const isNew = Math.random() > 0.3;
         
         if (isNew) {
+          if (isCancelled) return;
           setScanState('creating');
           setIsNewPatient(true);
           
@@ -181,13 +190,16 @@ export default function ScanCareTag() {
             .single();
           
           if (insertError) throw insertError;
+          if (isCancelled) return;
           
           setPatient(newPatient);
           toast.success('New patient registered!');
           
           await new Promise(resolve => setTimeout(resolve, 1200));
+          if (isCancelled) return;
           setScanState('redirecting');
           await new Promise(resolve => setTimeout(resolve, 400));
+          if (isCancelled) return;
           navigate(`/patients/${newPatient.id}`);
         } else {
           const { data, error } = await supabase
@@ -196,6 +208,7 @@ export default function ScanCareTag() {
             .limit(10);
 
           if (error) throw error;
+          if (isCancelled) return;
 
           if (data && data.length > 0) {
             const randomPatient = data[Math.floor(Math.random() * data.length)];
@@ -203,10 +216,13 @@ export default function ScanCareTag() {
             toast.success('Patient found!');
             
             await new Promise(resolve => setTimeout(resolve, 1200));
+            if (isCancelled) return;
             setScanState('redirecting');
             await new Promise(resolve => setTimeout(resolve, 400));
+            if (isCancelled) return;
             navigate(`/patients/${randomPatient.id}`);
           } else {
+            if (isCancelled) return;
             setScanState('creating');
             setIsNewPatient(true);
             
@@ -218,25 +234,37 @@ export default function ScanCareTag() {
               .single();
             
             if (insertError) throw insertError;
+            if (isCancelled) return;
             
             setPatient(newPatient);
             toast.success('New patient registered!');
             
             await new Promise(resolve => setTimeout(resolve, 1200));
+            if (isCancelled) return;
             setScanState('redirecting');
             await new Promise(resolve => setTimeout(resolve, 400));
+            if (isCancelled) return;
             navigate(`/patients/${newPatient.id}`);
           }
         }
       } catch (err) {
         console.error('Scan error:', err);
-        toast.error('Failed to process CareTag');
-        navigate(-1);
+        if (!isCancelled) {
+          toast.error('Failed to process CareTag');
+          navigate(-1);
+        }
       }
     };
 
-    runScanSimulation();
-  }, [navigate]);
+    // Only run simulation when in scanning mode
+    if (scanState === 'scanning') {
+      runScanSimulation();
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [navigate, scanState, onTagDetected]);
 
   const isActive = scanState === 'scanning';
   const isSuccess = scanState === 'detected' || scanState === 'loading' || scanState === 'redirecting';
