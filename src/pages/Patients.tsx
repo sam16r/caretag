@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ScanLine, Plus, Users, AlertTriangle, Heart, ArrowRight } from 'lucide-react';
+import { Search, ScanLine, Plus, Users, AlertTriangle, ArrowRight } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 
 export default function Patients() {
@@ -138,8 +138,8 @@ export default function Patients() {
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-primary font-medium text-sm">
+                  <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-foreground font-medium text-sm">
                       {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
                     </span>
                   </div>
@@ -150,7 +150,7 @@ export default function Patients() {
                         <p className="text-xs text-muted-foreground font-mono">{patient.caretag_id}</p>
                       </div>
                       {patient.blood_group && (
-                        <Badge variant="outline" className="text-destructive border-destructive/40 flex-shrink-0 text-xs">
+                        <Badge variant="outline" className="flex-shrink-0 text-xs">
                           {patient.blood_group}
                         </Badge>
                       )}
@@ -172,7 +172,6 @@ export default function Patients() {
                     <div className="mt-2 flex flex-wrap gap-1">
                       {patient.chronic_conditions?.slice(0, 2).map((condition: string, i: number) => (
                         <Badge key={i} variant="secondary" className="text-xs">
-                          <Heart className="h-3 w-3 mr-1 text-destructive" />
                           {condition}
                         </Badge>
                       ))}
@@ -182,7 +181,7 @@ export default function Patients() {
                         </Badge>
                       )}
                       {patient.allergies && patient.allergies.length > 0 && (
-                        <Badge variant="outline" className="text-xs text-warning border-warning/40">
+                        <Badge variant="outline" className="text-xs">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           {patient.allergies.length} allerg{patient.allergies.length > 1 ? 'ies' : 'y'}
                         </Badge>

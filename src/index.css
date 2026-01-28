@@ -184,30 +184,9 @@
     @apply border-primary/40 shadow-md;
   }
 
-  /* Professional Stat Cards */
-  .stat-card-blue {
-    @apply rounded-lg p-4 border border-primary/20;
-    background: hsl(var(--primary) / 0.05);
-  }
-
-  .stat-card-indigo {
-    @apply rounded-lg p-4 border border-accent/20;
-    background: hsl(var(--accent) / 0.05);
-  }
-
-  .stat-card-green {
-    @apply rounded-lg p-4 border border-success/20;
-    background: hsl(var(--success) / 0.05);
-  }
-
-  .stat-card-amber {
-    @apply rounded-lg p-4 border border-warning/20;
-    background: hsl(var(--warning) / 0.05);
-  }
-
-  .stat-card-red {
-    @apply rounded-lg p-4 border border-destructive/20;
-    background: hsl(var(--destructive) / 0.05);
+  /* Stat Card - Clean */
+  .stat-card {
+    @apply rounded-lg p-4 bg-card border border-border;
   }
 
   /* Icon Containers */
