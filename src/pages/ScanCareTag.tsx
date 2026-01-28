@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wifi, CheckCircle2, User, UserPlus, X } from 'lucide-react';
+import { Wifi, CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-type ScanState = 'scanning' | 'detected' | 'loading' | 'creating' | 'redirecting';
+type ScanState = 'scanning' | 'manual' | 'detected' | 'loading' | 'creating' | 'redirecting';
 
 const generateCareTagId = () => {
   const year = new Date().getFullYear();
@@ -88,11 +90,73 @@ export default function ScanCareTag() {
   const [scanState, setScanState] = useState<ScanState>('scanning');
   const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string | null } | null>(null);
   const [isNewPatient, setIsNewPatient] = useState(false);
+  const [manualId, setManualId] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const onTagDetected = useCallback(() => {
     playDetectionSound();
     triggerHapticFeedback();
   }, []);
+
+  const handleManualSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualId.trim()) return;
+
+    setIsSearching(true);
+    try {
+      // Search for existing patient
+      const { data: existingPatient, error } = await supabase
+        .from('patients')
+        .select('id, full_name, caretag_id, blood_group')
+        .eq('caretag_id', manualId.trim().toUpperCase())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      onTagDetected();
+      setScanState('detected');
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      if (existingPatient) {
+        setPatient(existingPatient);
+        setIsNewPatient(false);
+        setScanState('loading');
+        toast.success('Patient found!');
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        setScanState('redirecting');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        navigate(`/patients/${existingPatient.id}`);
+      } else {
+        // Create new patient
+        setScanState('creating');
+        setIsNewPatient(true);
+        const newPatientData = generateRandomPatient();
+        newPatientData.caretag_id = manualId.trim().toUpperCase();
+        
+        const { data: newPatient, error: insertError } = await supabase
+          .from('patients')
+          .insert(newPatientData)
+          .select('id, full_name, caretag_id, blood_group')
+          .single();
+
+        if (insertError) throw insertError;
+
+        setPatient(newPatient);
+        toast.success('New patient registered!');
+        setScanState('loading');
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        setScanState('redirecting');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        navigate(`/patients/${newPatient.id}`);
+      }
+    } catch (err) {
+      console.error('Manual search error:', err);
+      toast.error('Failed to search for patient');
+      setScanState('manual');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     const runScanSimulation = async () => {
@@ -181,7 +245,7 @@ export default function ScanCareTag() {
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
       {/* Close button */}
-      {scanState === 'scanning' && (
+      {(scanState === 'scanning' || scanState === 'manual') && (
         <Button
           variant="ghost"
           size="icon"
@@ -195,19 +259,26 @@ export default function ScanCareTag() {
       <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
         {/* Scanner visual */}
         <div className="relative flex items-center justify-center">
-          {/* Outer rings */}
-          <div className={`absolute w-40 h-40 rounded-full border-2 transition-all duration-500 ${
-            isActive ? 'border-primary/30 animate-ping' : isSuccess ? 'border-success/20' : 'border-primary/20'
-          }`} style={{ animationDuration: '2s' }} />
-          
-          <div className={`absolute w-32 h-32 rounded-full border-2 transition-all duration-500 ${
-            isActive ? 'border-primary/40 animate-pulse' : isSuccess ? 'border-success/30' : 'border-primary/30'
-          }`} />
+          {/* Outer rings - hide in manual mode */}
+          {scanState !== 'manual' && (
+            <>
+              <div className={`absolute w-40 h-40 rounded-full border-2 transition-all duration-500 ${
+                isActive ? 'border-primary/30 animate-ping' : isSuccess ? 'border-success/20' : 'border-primary/20'
+              }`} style={{ animationDuration: '2s' }} />
+              
+              <div className={`absolute w-32 h-32 rounded-full border-2 transition-all duration-500 ${
+                isActive ? 'border-primary/40 animate-pulse' : isSuccess ? 'border-success/30' : 'border-primary/30'
+              }`} />
+            </>
+          )}
 
           {/* Center circle */}
           <div className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-            isActive ? 'bg-primary/10' : isCreating ? 'bg-primary/10' : isSuccess ? 'bg-success/10' : 'bg-muted'
+            scanState === 'manual' ? 'bg-muted' : isActive ? 'bg-primary/10' : isCreating ? 'bg-primary/10' : isSuccess ? 'bg-success/10' : 'bg-muted'
           }`}>
+            {scanState === 'manual' && (
+              <Keyboard className="h-10 w-10 text-muted-foreground" />
+            )}
             {isActive && (
               <Wifi className="h-10 w-10 text-primary animate-pulse" />
             )}
@@ -235,7 +306,62 @@ export default function ScanCareTag() {
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setScanState('manual')}
+                className="mt-4 text-muted-foreground"
+              >
+                <Keyboard className="h-4 w-4 mr-2" />
+                Enter ID manually
+              </Button>
             </>
+          )}
+
+          {scanState === 'manual' && (
+            <div className="w-full max-w-xs space-y-4">
+              <div className="text-center">
+                <h1 className="text-lg font-semibold text-foreground">
+                  Manual Entry
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Enter the CareTag ID printed on the tag
+                </p>
+              </div>
+              <form onSubmit={handleManualSearch} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="caretag-id" className="text-sm">CareTag ID</Label>
+                  <Input
+                    id="caretag-id"
+                    placeholder="e.g., CT-2026-1234"
+                    value={manualId}
+                    onChange={(e) => setManualId(e.target.value.toUpperCase())}
+                    className="text-center font-mono"
+                    autoFocus
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full gap-2" 
+                  disabled={!manualId.trim() || isSearching}
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  {isSearching ? 'Searching...' : 'Search Patient'}
+                </Button>
+              </form>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setScanState('scanning')}
+                className="w-full text-muted-foreground"
+              >
+                Back to scanning
+              </Button>
+            </div>
           )}
 
           {scanState === 'detected' && (
