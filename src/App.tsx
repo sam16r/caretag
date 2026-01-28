@@ -21,7 +21,6 @@ import Settings from "./pages/Settings";
 import Analytics from "./pages/Analytics";
 import ScanCareTag from "./pages/ScanCareTag";
 import NotFound from "./pages/NotFound";
-import { PlayfulCardDemo } from "./components/demo/PlayfulCardDemo";
 
 const queryClient = new QueryClient();
 
@@ -125,7 +124,6 @@ const App = () => (
                 }
               />
               <Route path="/scan" element={<ScanCareTag />} />
-              <Route path="/demo/playful" element={<PlayfulCardDemo />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

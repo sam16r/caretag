@@ -18,9 +18,12 @@ import {
   FileText,
   TrendingUp,
   ArrowUpRight,
+  Sparkles,
+  Heart,
 } from 'lucide-react';
 import { useDashboardStats, useRecentPatients, useTodayAppointments, useActiveEmergencies } from '@/hooks/useDashboardData';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export function DoctorDashboard() {
   const navigate = useNavigate();
@@ -42,7 +45,9 @@ export function DoctorDashboard() {
       value: stats?.totalPatients || 0,
       change: '+12%',
       icon: Users,
-      color: 'bg-primary',
+      gradient: 'from-blue-500 to-indigo-600',
+      bgClass: 'stat-card-blue',
+      iconBg: 'bg-blue-500',
       onClick: () => navigate('/patients'),
     },
     {
@@ -50,7 +55,9 @@ export function DoctorDashboard() {
       value: stats?.todayAppointments || 0,
       change: null,
       icon: Calendar,
-      color: 'bg-accent',
+      gradient: 'from-violet-500 to-purple-600',
+      bgClass: 'stat-card-purple',
+      iconBg: 'bg-violet-500',
       onClick: () => navigate('/appointments'),
     },
     {
@@ -58,7 +65,9 @@ export function DoctorDashboard() {
       value: stats?.activeEmergencies || 0,
       change: null,
       icon: AlertTriangle,
-      color: (stats?.activeEmergencies || 0) > 0 ? 'bg-destructive' : 'bg-muted',
+      gradient: 'from-rose-500 to-red-600',
+      bgClass: 'stat-card-red',
+      iconBg: (stats?.activeEmergencies || 0) > 0 ? 'bg-rose-500' : 'bg-muted',
       highlight: (stats?.activeEmergencies || 0) > 0,
       onClick: () => navigate('/emergency'),
     },
@@ -67,36 +76,39 @@ export function DoctorDashboard() {
       value: stats?.activePrescriptions || 0,
       change: '+3',
       icon: FileText,
-      color: 'bg-success',
+      gradient: 'from-emerald-500 to-teal-600',
+      bgClass: 'stat-card-green',
+      iconBg: 'bg-emerald-500',
       onClick: () => navigate('/prescriptions'),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-8 animate-fade-in">
+      {/* Header - Playful */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{getTimeOfDay()}, Doctor</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">{getTimeOfDay()}, Doctor</h1>
+            <span className="text-3xl animate-wiggle">👋</span>
+          </div>
+          <p className="text-muted-foreground font-medium">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')} • Let's care for your patients today!
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
-            size="sm" 
             onClick={() => navigate('/patients?scan=true')} 
-            className="gap-2 h-9"
+            className="gap-2"
           >
             <ScanLine className="h-4 w-4" />
             Scan CareTag
           </Button>
           <Button 
-            size="sm" 
             onClick={() => navigate('/emergency')} 
             variant="destructive"
-            className="gap-2 h-9"
+            className="gap-2"
           >
             <AlertTriangle className="h-4 w-4" />
             Emergency
@@ -104,136 +116,144 @@ export function DoctorDashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Colorful Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((stat) => (
-          <Card 
+        {statCards.map((stat, index) => (
+          <div 
             key={stat.title}
             className={cn(
-              "cursor-pointer transition-all duration-200 hover:shadow-md",
-              stat.highlight && "border-destructive/50"
+              stat.bgClass,
+              "animate-slide-up group"
             )}
+            style={{ animationDelay: `${index * 100}ms` }}
             onClick={stat.onClick}
           >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">{stat.title}</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-14" />
-                  ) : (
-                    <div className="flex items-baseline gap-2">
-                      <span className={cn(
-                        "text-2xl font-bold",
-                        stat.highlight && "text-destructive"
-                      )}>
-                        {stat.value}
-                      </span>
-                      {stat.change && (
-                        <span className="text-xs font-medium text-success flex items-center">
-                          <TrendingUp className="h-3 w-3 mr-0.5" />
-                          {stat.change}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", stat.color)}>
-                  <stat.icon className="h-5 w-5 text-white" />
-                </div>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
+                {statsLoading ? (
+                  <Skeleton className="h-10 w-16 rounded-xl" />
+                ) : (
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn(
+                      "text-4xl font-bold",
+                      stat.highlight && "text-destructive"
+                    )}>
+                      {stat.value}
+                    </span>
+                    {stat.change && (
+                      <Badge variant="secondary" className="bg-success/20 text-success border-0">
+                        <TrendingUp className="h-3 w-3 mr-0.5" />
+                        {stat.change}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className={cn(
+                "h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:rotate-6 group-hover:scale-110",
+                stat.iconBg
+              )}>
+                <stat.icon className="h-7 w-7 text-white" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'New Patient', icon: Plus, onClick: () => navigate('/patients?action=new') },
-          { label: 'Scan CareTag', icon: ScanLine, onClick: () => navigate('/patients?scan=true') },
-          { label: 'Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new') },
-          { label: 'Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new') },
-        ].map((action) => (
-          <Button
-            key={action.label}
-            variant="outline"
-            className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary hover:bg-primary/5"
-            onClick={action.onClick}
-          >
-            <action.icon className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium">{action.label}</span>
-          </Button>
-        ))}
+      {/* Quick Actions - Pill Buttons */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          Quick Actions
+        </h3>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: '➕ New Patient', icon: Plus, onClick: () => navigate('/patients?action=new') },
+            { label: '📷 Scan CareTag', icon: ScanLine, onClick: () => navigate('/patients?scan=true') },
+            { label: '💊 Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new') },
+            { label: '📅 Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new') },
+          ].map((action, i) => (
+            <Button
+              key={action.label}
+              variant="outline"
+              className="rounded-full px-5 py-2 h-auto border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 hover:-translate-y-1 animate-scale-in"
+              style={{ animationDelay: `${i * 50}ms` }}
+              onClick={action.onClick}
+            >
+              <span className="font-semibold">{action.label}</span>
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Schedule */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between py-4">
+        <Card className="lg:col-span-2 overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between py-5 bg-gradient-to-r from-primary/5 to-accent/5">
             <div>
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
+              <CardTitle className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
                 Today's Schedule
               </CardTitle>
-              <CardDescription className="text-xs mt-0.5">Your upcoming appointments</CardDescription>
+              <CardDescription className="mt-1">Your upcoming appointments</CardDescription>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => navigate('/appointments')} 
-              className="gap-1 text-xs h-8 text-primary hover:text-primary"
+              className="gap-1 text-primary hover:text-primary rounded-full"
             >
               View all
-              <ArrowRight className="h-3 w-3" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2 pt-0">
+          <CardContent className="space-y-3 pt-4">
             {appointmentsLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
+                <Skeleton key={i} className="h-20 w-full rounded-2xl" />
               ))
             ) : todayAppointments && todayAppointments.length > 0 ? (
-              todayAppointments.slice(0, 5).map((apt) => (
+              todayAppointments.slice(0, 5).map((apt, i) => (
                 <div
                   key={apt.id}
                   onClick={() => navigate(`/patients/${apt.patient_id}`)}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/50 hover:bg-secondary transition-all duration-300 cursor-pointer hover:-translate-x-1 group animate-slide-up"
+                  style={{ animationDelay: `${i * 50}ms` }}
                 >
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                      {(apt.patients as any)?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'P'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
+                    {(apt.patients as any)?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'P'}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="font-bold truncate">
                       {(apt.patients as any)?.full_name || 'Unknown Patient'}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {apt.reason || 'General Consultation'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{format(new Date(apt.scheduled_at), 'h:mm a')}</p>
+                    <p className="text-lg font-bold text-primary">{format(new Date(apt.scheduled_at), 'h:mm a')}</p>
                     <Badge 
-                      variant="secondary" 
-                      className={cn(
-                        "text-[10px] capitalize",
-                        apt.status === 'in_progress' && "bg-success/10 text-success"
-                      )}
+                      variant={apt.status === 'in_progress' ? 'success' : 'secondary'}
+                      className="capitalize"
                     >
-                      {apt.status === 'in_progress' ? 'Active' : apt.status}
+                      {apt.status === 'in_progress' ? '🟢 Active' : apt.status}
                     </Badge>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
               ))
             ) : (
-              <div className="text-center py-12">
-                <Calendar className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-medium">No appointments today</p>
-                <p className="text-xs text-muted-foreground">Your schedule is clear</p>
+              <div className="text-center py-16">
+                <div className="h-20 w-20 rounded-3xl bg-secondary flex items-center justify-center mx-auto mb-4 animate-float">
+                  <Calendar className="h-10 w-10 text-muted-foreground/50" />
+                </div>
+                <p className="text-lg font-bold">No appointments today</p>
+                <p className="text-muted-foreground">Your schedule is clear! 🎉</p>
               </div>
             )}
           </CardContent>
@@ -242,51 +262,64 @@ export function DoctorDashboard() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Emergencies */}
-          <Card className={cn(emergencies && emergencies.length > 0 && "border-destructive/50")}>
-            <CardHeader className="flex flex-row items-center justify-between py-4">
+          <Card className={cn(
+            "overflow-hidden",
+            emergencies && emergencies.length > 0 && "border-2 border-destructive/30"
+          )}>
+            <CardHeader className={cn(
+              "flex flex-row items-center justify-between py-4",
+              emergencies && emergencies.length > 0 ? "bg-gradient-to-r from-destructive/10 to-destructive/5" : "bg-gradient-to-r from-success/10 to-success/5"
+            )}>
               <CardTitle className={cn(
-                "text-base font-semibold flex items-center gap-2",
+                "flex items-center gap-2",
                 emergencies && emergencies.length > 0 && "text-destructive"
               )}>
-                <AlertTriangle className={cn(
-                  "h-4 w-4",
-                  emergencies && emergencies.length > 0 ? "text-destructive" : "text-muted-foreground"
-                )} />
+                <div className={cn(
+                  "h-10 w-10 rounded-2xl flex items-center justify-center shadow-lg",
+                  emergencies && emergencies.length > 0 ? "bg-destructive" : "bg-success"
+                )}>
+                  {emergencies && emergencies.length > 0 ? (
+                    <AlertTriangle className="h-5 w-5 text-white" />
+                  ) : (
+                    <Heart className="h-5 w-5 text-white" />
+                  )}
+                </div>
                 Emergencies
               </CardTitle>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/emergency')} 
-                className="h-7 text-xs"
+                className="rounded-full"
               >
                 View all
               </Button>
             </CardHeader>
-            <CardContent className="space-y-2 pt-0">
+            <CardContent className="space-y-3 pt-4">
               {emergenciesLoading ? (
-                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-20 w-full rounded-2xl" />
               ) : emergencies && emergencies.length > 0 ? (
-                emergencies.slice(0, 3).map((emergency) => (
+                emergencies.slice(0, 3).map((emergency, i) => (
                   <div
                     key={emergency.id}
                     onClick={() => navigate(`/patients/${emergency.patient_id}`)}
-                    className="p-3 rounded-lg bg-destructive/5 border border-destructive/10 cursor-pointer hover:bg-destructive/10 transition-colors"
+                    className="p-4 rounded-2xl bg-destructive/5 border-2 border-destructive/10 cursor-pointer hover:bg-destructive/10 transition-all duration-300 hover:scale-[1.02] animate-slide-up"
+                    style={{ animationDelay: `${i * 50}ms` }}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <div className="h-10 w-10 rounded-2xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="font-bold truncate">
                           {(emergency.patients as any)?.full_name || 'Unknown'}
                         </p>
-                        <p className="text-xs text-destructive truncate">{emergency.description}</p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <Badge variant="destructive" className="text-[10px] capitalize h-5">
-                            {emergency.severity}
+                        <p className="text-sm text-destructive truncate">{emergency.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="destructive" className="capitalize">
+                            🚨 {emergency.severity}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {format(new Date(emergency.created_at), 'h:mm a')}
                           </span>
                         </div>
@@ -295,61 +328,63 @@ export function DoctorDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-2">
-                    <Activity className="h-5 w-5 text-success" />
+                <div className="text-center py-10">
+                  <div className="h-16 w-16 rounded-3xl bg-success/10 flex items-center justify-center mx-auto mb-3 animate-float">
+                    <Activity className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-sm font-medium text-success">All Clear</p>
-                  <p className="text-xs text-muted-foreground">No emergencies</p>
+                  <p className="font-bold text-success">All Clear! ✨</p>
+                  <p className="text-sm text-muted-foreground">No emergencies</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Recent Patients */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between py-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <User className="h-4 w-4 text-accent" />
+          <Card className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between py-4 bg-gradient-to-r from-accent/10 to-accent/5">
+              <CardTitle className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-2xl bg-accent flex items-center justify-center shadow-lg">
+                  <User className="h-5 w-5 text-white" />
+                </div>
                 Recent Patients
               </CardTitle>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/patients')} 
-                className="h-7 text-xs"
+                className="rounded-full"
               >
                 View all
               </Button>
             </CardHeader>
-            <CardContent className="space-y-1 pt-0">
+            <CardContent className="space-y-2 pt-4">
               {patientsLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className="h-14 w-full rounded-2xl" />
                 ))
               ) : recentPatients && recentPatients.length > 0 ? (
-                recentPatients.map((patient) => (
+                recentPatients.map((patient, i) => (
                   <div
                     key={patient.id}
                     onClick={() => navigate(`/patients/${patient.id}`)}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
+                    className="flex items-center gap-3 p-3 rounded-2xl hover:bg-secondary/70 transition-all duration-300 cursor-pointer group hover:-translate-x-1 animate-slide-up"
+                    style={{ animationDelay: `${i * 50}ms` }}
                   >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-accent/10 text-accent text-xs font-medium">
-                        {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white font-bold shadow-md group-hover:scale-105 transition-transform">
+                      {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{patient.full_name}</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="font-bold truncate">{patient.full_name}</p>
+                      <p className="text-xs text-muted-foreground">
                         {patient.gender} • {patient.blood_group || 'Unknown'}
                       </p>
                     </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6">
-                  <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <div className="text-center py-8">
+                  <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">No patients yet</p>
                 </div>
               )}
@@ -359,8 +394,4 @@ export function DoctorDashboard() {
       </div>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }
