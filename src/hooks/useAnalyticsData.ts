@@ -1,15 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, startOfMonth, subMonths, format, eachDayOfInterval, subDays } from 'date-fns';
+import { startOfMonth, subMonths, format, eachDayOfInterval, eachMonthOfInterval, subDays } from 'date-fns';
 
 export function useAnalyticsData() {
   return useQuery({
     queryKey: ['analytics-data'],
     queryFn: async () => {
       const now = new Date();
-      const startOfCurrentMonth = startOfMonth(now);
-      const startOfLastMonth = startOfMonth(subMonths(now, 1));
       const last30Days = subDays(now, 30);
+      const last12Months = subMonths(now, 11);
 
       // Get all patients for demographics
       const { data: patients } = await supabase
@@ -33,6 +32,12 @@ export function useAnalyticsData() {
         .from('emergency_records')
         .select('id, severity, created_at, resolved_at')
         .gte('created_at', last30Days.toISOString());
+
+      // Get invoices for revenue tracking (last 12 months)
+      const { data: invoices } = await supabase
+        .from('invoices')
+        .select('id, total_amount, status, paid_at, created_at')
+        .gte('created_at', startOfMonth(last12Months).toISOString());
 
       // Calculate gender distribution
       const genderDistribution = {
@@ -126,6 +131,61 @@ export function useAnalyticsData() {
         critical: emergencies?.filter(e => e.severity === 'critical').length || 0,
       };
 
+      // Revenue calculations
+      const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      const paidRevenue = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      const pendingRevenue = invoices?.filter(inv => inv.status === 'pending').reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      const overdueRevenue = invoices?.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+
+      // Invoice status breakdown
+      const invoiceStatus = {
+        paid: invoices?.filter(inv => inv.status === 'paid').length || 0,
+        pending: invoices?.filter(inv => inv.status === 'pending').length || 0,
+        overdue: invoices?.filter(inv => inv.status === 'overdue').length || 0,
+        cancelled: invoices?.filter(inv => inv.status === 'cancelled').length || 0,
+      };
+
+      // Monthly revenue trend (last 12 months)
+      const months = eachMonthOfInterval({
+        start: startOfMonth(last12Months),
+        end: startOfMonth(now),
+      });
+
+      const monthlyRevenue = months.map(month => {
+        const monthStr = format(month, 'yyyy-MM');
+        const monthInvoices = invoices?.filter(inv => 
+          format(new Date(inv.created_at), 'yyyy-MM') === monthStr
+        ) || [];
+        
+        const total = monthInvoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+        const paid = monthInvoices
+          .filter(inv => inv.status === 'paid')
+          .reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+
+        return {
+          month: format(month, 'MMM yyyy'),
+          shortMonth: format(month, 'MMM'),
+          total,
+          paid,
+        };
+      });
+
+      // Current month vs previous month comparison
+      const currentMonthStr = format(now, 'yyyy-MM');
+      const previousMonthStr = format(subMonths(now, 1), 'yyyy-MM');
+      
+      const currentMonthRevenue = invoices
+        ?.filter(inv => format(new Date(inv.created_at), 'yyyy-MM') === currentMonthStr)
+        .reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      
+      const previousMonthRevenue = invoices
+        ?.filter(inv => format(new Date(inv.created_at), 'yyyy-MM') === previousMonthStr)
+        .reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+
+      const revenueGrowth = previousMonthRevenue > 0 
+        ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100 
+        : 0;
+
       return {
         totalPatients: patients?.length || 0,
         totalAppointments: appointments?.length || 0,
@@ -141,6 +201,17 @@ export function useAnalyticsData() {
         emergencySeverity,
         patientsWithConditions: patients?.filter(p => p.chronic_conditions && p.chronic_conditions.length > 0).length || 0,
         patientsWithAllergies: patients?.filter(p => p.allergies && p.allergies.length > 0).length || 0,
+        // Revenue data
+        totalRevenue,
+        paidRevenue,
+        pendingRevenue,
+        overdueRevenue,
+        invoiceStatus,
+        monthlyRevenue,
+        currentMonthRevenue,
+        previousMonthRevenue,
+        revenueGrowth,
+        totalInvoices: invoices?.length || 0,
       };
     },
   });
