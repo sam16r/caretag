@@ -29,7 +29,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
           <div className="flex flex-col items-center gap-1">
             <span className="text-foreground font-semibold">CareTag</span>
-            <span className="text-muted-foreground text-sm">Loading...</span>
+            <span className="text-muted-foreground text-sm">Your Health, Simplified</span>
           </div>
         </div>
       </div>

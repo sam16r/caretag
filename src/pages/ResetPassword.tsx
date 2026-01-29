@@ -110,7 +110,10 @@ export default function ResetPassword() {
           <div className="h-12 w-12 rounded-2xl flex items-center justify-center animate-pulse">
             <img src={logoSvg} alt="CareTag Logo" className="h-12 w-12" />
           </div>
-          <span className="text-muted-foreground font-medium">Verifying link...</span>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-foreground font-semibold">CareTag</span>
+            <span className="text-muted-foreground text-sm">Your Health, Simplified</span>
+          </div>
         </div>
       </div>
     );
@@ -166,9 +169,12 @@ export default function ResetPassword() {
     <div className="flex min-h-screen items-center justify-center bg-background p-8">
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
-          <span className="text-2xl font-bold tracking-tight">CareTag</span>
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex items-center gap-3">
+            <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
+            <span className="text-2xl font-bold tracking-tight">CareTag</span>
+          </div>
+          <span className="text-sm text-muted-foreground">Your Health, Simplified</span>
         </div>
         
         <Card className="border-border/50 shadow-xl shadow-black/5 rounded-2xl">
