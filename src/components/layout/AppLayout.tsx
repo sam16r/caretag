@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { AppHeader } from './AppHeader';
-import { Activity } from 'lucide-react';
+import logoSvg from '@/assets/logo.svg';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -24,8 +24,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 animate-pulse">
-            <Activity className="h-7 w-7 text-primary-foreground" />
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center animate-pulse">
+            <img src={logoSvg} alt="CareTag Logo" className="h-14 w-14" />
           </div>
           <div className="flex flex-col items-center gap-1">
             <span className="text-foreground font-semibold">CareTag</span>

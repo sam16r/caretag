@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Shield, Stethoscope, AlertCircle, Sparkles, ArrowLeft, ArrowRight, Loader2, Mail, Check } from 'lucide-react';
+import { Shield, Stethoscope, AlertCircle, Sparkles, ArrowLeft, ArrowRight, Loader2, Mail, Check, Activity } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import logoSvg from '@/assets/logo.svg';
 import { SignupStepper } from '@/components/auth/SignupStepper';
 import { AccountSetupStep } from '@/components/auth/signup-steps/AccountSetupStep';
 import { ProfessionalDetailsStep } from '@/components/auth/signup-steps/ProfessionalDetailsStep';
@@ -398,8 +399,8 @@ export default function Auth() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
-            <Activity className="h-6 w-6 text-primary-foreground" />
+          <div className="h-12 w-12 rounded-2xl flex items-center justify-center animate-pulse">
+            <img src={logoSvg} alt="CareTag Logo" className="h-12 w-12" />
           </div>
           <span className="text-muted-foreground font-medium">Loading CareTag...</span>
         </div>
@@ -492,9 +493,7 @@ export default function Auth() {
         <div className="w-full max-w-md animate-fade-in">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/30">
-              <Activity className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
             <span className="text-2xl font-bold tracking-tight">CareTag</span>
           </div>
           
@@ -571,9 +570,7 @@ export default function Auth() {
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-sidebar-primary/5 rounded-full blur-3xl" />
         
         <div className="flex items-center gap-3 relative z-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 shadow-lg shadow-sidebar-primary/30">
-            <Activity className="h-6 w-6 text-sidebar-primary-foreground" />
-          </div>
+          <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
           <span className="text-2xl font-bold text-sidebar-foreground tracking-tight">CareTag</span>
         </div>
         
@@ -633,9 +630,7 @@ export default function Auth() {
         <div className="w-full max-w-md animate-fade-in">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center justify-center gap-3 mb-8">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/30">
-              <Activity className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
             <span className="text-2xl font-bold tracking-tight">CareTag</span>
           </div>
           

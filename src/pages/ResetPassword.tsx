@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, AlertCircle, Check, Loader2, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import logoSvg from '@/assets/logo.svg';
 
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
@@ -106,8 +107,8 @@ export default function ResetPassword() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
-            <Activity className="h-6 w-6 text-primary-foreground" />
+          <div className="h-12 w-12 rounded-2xl flex items-center justify-center animate-pulse">
+            <img src={logoSvg} alt="CareTag Logo" className="h-12 w-12" />
           </div>
           <span className="text-muted-foreground font-medium">Verifying link...</span>
         </div>
@@ -166,9 +167,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/30">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
           <span className="text-2xl font-bold tracking-tight">CareTag</span>
         </div>
         
