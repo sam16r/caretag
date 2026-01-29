@@ -67,14 +67,14 @@
     --color-amber: 38 75% 50%;
     --color-red: 0 65% 51%;
 
-    /* Sidebar - Brand blue */
-    --sidebar-background: 217 72% 45%;
+    /* Sidebar - Brand blue (darker) */
+    --sidebar-background: 217 72% 35%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 217 72% 45%;
-    --sidebar-accent: 217 72% 52%;
+    --sidebar-primary-foreground: 217 72% 35%;
+    --sidebar-accent: 217 72% 42%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 72% 52%;
+    --sidebar-border: 217 72% 42%;
     --sidebar-ring: 0 0% 100%;
   }
 
@@ -128,14 +128,14 @@
     --input: 222 30% 18%;
     --ring: 217 72% 58%;
 
-    /* Sidebar - Brand blue */
-    --sidebar-background: 217 72% 40%;
+    /* Sidebar - Brand blue (darker) */
+    --sidebar-background: 217 72% 30%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 217 72% 40%;
-    --sidebar-accent: 217 72% 48%;
+    --sidebar-primary-foreground: 217 72% 30%;
+    --sidebar-accent: 217 72% 38%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 72% 48%;
+    --sidebar-border: 217 72% 38%;
     --sidebar-ring: 0 0% 100%;
   }
 }
