@@ -67,14 +67,14 @@
     --color-amber: 38 75% 50%;
     --color-red: 0 65% 51%;
 
-    /* Sidebar - Dark professional */
-    --sidebar-background: 222 47% 11%;
+    /* Sidebar - Lighter dark for logo visibility */
+    --sidebar-background: 220 30% 20%;
     --sidebar-foreground: 213 31% 91%;
     --sidebar-primary: 217 72% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 16%;
+    --sidebar-accent: 220 30% 26%;
     --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 222 47% 16%;
+    --sidebar-border: 220 30% 26%;
     --sidebar-ring: 217 72% 53%;
   }
 
@@ -128,14 +128,14 @@
     --input: 222 30% 18%;
     --ring: 217 72% 58%;
 
-    /* Sidebar */
-    --sidebar-background: 222 47% 6%;
+    /* Sidebar - Lighter dark for logo visibility */
+    --sidebar-background: 220 30% 14%;
     --sidebar-foreground: 213 31% 91%;
     --sidebar-primary: 217 72% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 11%;
+    --sidebar-accent: 220 30% 20%;
     --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 222 30% 14%;
+    --sidebar-border: 220 30% 20%;
     --sidebar-ring: 217 72% 58%;
   }
 }
