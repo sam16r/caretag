@@ -112,7 +112,7 @@ export default function ResetPassword() {
           </div>
           <div className="flex flex-col items-center gap-1">
             <span className="text-foreground font-semibold">CareTag</span>
-            <span className="text-muted-foreground text-sm">Your Health, Simplified</span>
+            <span className="text-muted-foreground text-sm italic">Your Health, Simplified</span>
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function ResetPassword() {
             <img src={logoSvg} alt="CareTag Logo" className="h-11 w-11" />
             <span className="text-2xl font-bold tracking-tight">CareTag</span>
           </div>
-          <span className="text-sm text-muted-foreground">Your Health, Simplified</span>
+          <span className="text-sm text-muted-foreground italic">Your Health, Simplified</span>
         </div>
         
         <Card className="border-border/50 shadow-xl shadow-black/5 rounded-2xl">

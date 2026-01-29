@@ -96,7 +96,7 @@ export function AppSidebar() {
             <span className="text-sm font-semibold text-sidebar-foreground whitespace-nowrap">
               CareTag
             </span>
-            <span className="text-xs text-sidebar-foreground/50 whitespace-nowrap">Your Health, Simplified</span>
+            <span className="text-xs text-sidebar-foreground/50 whitespace-nowrap italic">Your Health, Simplified</span>
           </div>
         </div>
       </SidebarHeader>
