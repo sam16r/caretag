@@ -578,7 +578,7 @@ export default function Auth() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sidebar-accent/50 text-sidebar-foreground/80 text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4" />
-              Healthcare Made Simple
+              Your Health, Simplified
             </div>
             <h1 className="text-5xl font-bold text-sidebar-foreground leading-tight tracking-tight">
               Medical Records<br />at Your Fingertips
