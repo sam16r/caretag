@@ -11,9 +11,9 @@ import {
   Smartphone,
   Settings,
   LogOut,
-  Activity,
   PieChart,
 } from 'lucide-react';
+import logoSvg from '@/assets/logo.svg';
 import {
   Sidebar,
   SidebarContent,
@@ -81,15 +81,14 @@ export function AppSidebar() {
           "flex items-center overflow-hidden transition-all duration-200",
           collapsed ? "justify-center" : "gap-3"
         )}>
-          <div className={cn(
-            "flex items-center justify-center rounded-lg bg-primary flex-shrink-0 transition-all duration-200",
-            collapsed ? "h-8 w-8" : "h-9 w-9"
-          )}>
-            <Activity className={cn(
-              "text-primary-foreground transition-all duration-200",
-              collapsed ? "h-4 w-4" : "h-5 w-5"
-            )} />
-          </div>
+          <img 
+            src={logoSvg} 
+            alt="CareTag Logo" 
+            className={cn(
+              "flex-shrink-0 transition-all duration-200",
+              collapsed ? "h-8 w-8" : "h-9 w-9"
+            )}
+          />
           <div className={cn(
             "flex flex-col transition-all duration-200 ease-in-out",
             collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
