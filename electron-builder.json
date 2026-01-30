@@ -12,6 +12,7 @@
     "electron/**/*",
     "public/favicon.ico"
   ],
+  "forceCodeSigning": false,
   "win": {
     "target": [
       {
