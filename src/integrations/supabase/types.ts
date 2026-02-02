@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_sessions: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          ended_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_sessions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_waitlist: {
         Row: {
           created_at: string
@@ -929,6 +970,10 @@ export type Database = {
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_active_session: {
+        Args: { _doctor_id: string; _patient_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

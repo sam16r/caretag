@@ -7,23 +7,21 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ScanLine, Plus, Users, AlertTriangle, ArrowRight } from 'lucide-react';
-import { differenceInYears } from 'date-fns';
+import { Search, ScanLine, Users, ArrowRight, Phone, ShieldAlert, Lock } from 'lucide-react';
+import { useActiveSessions } from '@/hooks/useAccessSession';
 
 export default function Patients() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [bloodGroupFilter, setBloodGroupFilter] = useState<string>('all');
-  const [genderFilter, setGenderFilter] = useState<string>('all');
-  const [conditionFilter, setConditionFilter] = useState<string>('all');
+  const { data: activeSessions } = useActiveSessions();
 
+  // Get only limited patient info - no medical data
   const { data: patients, isLoading } = useQuery({
-    queryKey: ['patients'],
+    queryKey: ['patients-limited'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('patients')
-        .select('*')
+        .select('id, full_name, caretag_id, emergency_contact_name, emergency_contact_phone')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -31,174 +29,167 @@ export default function Patients() {
     },
   });
 
-  const calculateAge = (dob: string) => {
-    return differenceInYears(new Date(), new Date(dob));
-  };
-
   const filteredPatients = patients?.filter(p => {
     const matchesSearch = 
       p.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      p.caretag_id.toLowerCase().includes(search.toLowerCase()) ||
-      p.phone?.includes(search) ||
-      p.email?.toLowerCase().includes(search.toLowerCase());
+      p.caretag_id.toLowerCase().includes(search.toLowerCase());
 
-    const matchesBloodGroup = bloodGroupFilter === 'all' || p.blood_group === bloodGroupFilter;
-    const matchesGender = genderFilter === 'all' || p.gender === genderFilter;
-    const matchesCondition = conditionFilter === 'all' || 
-      (conditionFilter === 'with' && p.chronic_conditions && p.chronic_conditions.length > 0) ||
-      (conditionFilter === 'without' && (!p.chronic_conditions || p.chronic_conditions.length === 0));
-
-    return matchesSearch && matchesBloodGroup && matchesGender && matchesCondition;
+    return matchesSearch;
   });
 
-  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  // Check if patient has active session
+  const hasActiveSession = (patientId: string) => {
+    return activeSessions?.some(s => s.patient_id === patientId);
+  };
 
   return (
     <div className="space-y-6">
+      {/* Security Notice */}
+      <Card className="border-amber-200 bg-amber-50/50">
+        <CardContent className="p-4 flex items-start gap-3">
+          <ShieldAlert className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="space-y-1">
+            <p className="font-medium text-amber-900">Secure Access Mode</p>
+            <p className="text-sm text-amber-700">
+              To access full patient records, scan their CareTag. Patient list shows limited info only for identification purposes.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Patients</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {patients?.length || 0} patients registered • {filteredPatients?.length || 0} shown
+            {patients?.length || 0} patients registered • Scan CareTag to access records
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => navigate('/scan')}>
+          <Button className="gap-2" onClick={() => navigate('/scan')}>
             <ScanLine className="h-4 w-4" />
             Scan CareTag
           </Button>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Patient
-          </Button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by name, CareTag ID, phone, or email..." 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)} 
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Select value={bloodGroupFilter} onValueChange={setBloodGroupFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Blood Group" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Blood</SelectItem>
-              {bloodGroups.map(bg => (
-                <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+      {/* Active Sessions */}
+      {activeSessions && activeSessions.length > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-4">
+            <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary" />
+              Active Access Sessions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {activeSessions.map((session: any) => (
+                <div 
+                  key={session.id}
+                  onClick={() => navigate(`/patients/${session.patient_id}`)}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-background border cursor-pointer hover:border-primary/50 transition-colors"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-primary font-medium text-sm">
+                      {session.patients?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'P'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate text-sm">{session.patients?.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{session.patients?.caretag_id}</p>
+                  </div>
+                  <Badge variant="default" className="text-xs">Active</Badge>
+                </div>
               ))}
-            </SelectContent>
-          </Select>
-          <Select value={genderFilter} onValueChange={setGenderFilter}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Gender</SelectItem>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={conditionFilter} onValueChange={setConditionFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Conditions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Patients</SelectItem>
-              <SelectItem value="with">With Conditions</SelectItem>
-              <SelectItem value="without">No Conditions</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Search */}
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input 
+          placeholder="Search by name or CareTag ID..." 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          className="pl-10"
+        />
       </div>
 
-      {/* Results */}
+      {/* Results - Limited Info Only */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 9 }).map((_, i) => (
-            <Skeleton key={i} className="h-36" />
+            <Skeleton key={i} className="h-24" />
           ))}
         </div>
       ) : filteredPatients && filteredPatients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPatients.map((patient) => (
-            <Card 
-              key={patient.id} 
-              className="cursor-pointer hover:border-primary/30 hover:shadow-md transition-all" 
-              onClick={() => navigate(`/patients/${patient.id}`)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-blue-700 font-medium text-sm">
-                      {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium truncate">{patient.full_name}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{patient.caretag_id}</p>
+          {filteredPatients.map((patient) => {
+            const isActive = hasActiveSession(patient.id);
+            return (
+              <Card 
+                key={patient.id} 
+                className={`transition-all ${
+                  isActive 
+                    ? 'cursor-pointer hover:border-primary/50 hover:shadow-md border-primary/30' 
+                    : 'opacity-75'
+                }`}
+                onClick={() => isActive ? navigate(`/patients/${patient.id}`) : navigate('/scan')}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      isActive ? 'bg-primary/10' : 'bg-muted'
+                    }`}>
+                      <span className={`font-medium text-sm ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {patient.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-medium truncate">{patient.full_name}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{patient.caretag_id}</p>
+                        </div>
+                        {isActive ? (
+                          <Badge variant="default" className="flex-shrink-0 text-xs">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        )}
                       </div>
-                      {patient.blood_group && (
-                        <Badge variant="outline" className="flex-shrink-0 text-xs text-red-700 border-red-300 bg-red-100">
-                          {patient.blood_group}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="mt-2 flex flex-wrap gap-1 text-xs text-muted-foreground">
-                      <span>{patient.gender}</span>
-                      <span>•</span>
-                      <span>{calculateAge(patient.date_of_birth)} yrs</span>
-                      {patient.phone && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate max-w-[100px]">{patient.phone}</span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Conditions & Allergies */}
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {patient.chronic_conditions?.slice(0, 2).map((condition: string, i: number) => (
-                        <Badge key={i} variant="secondary" className="text-xs">
-                          {condition}
-                        </Badge>
-                      ))}
-                      {patient.chronic_conditions && patient.chronic_conditions.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{patient.chronic_conditions.length - 2}
-                        </Badge>
-                      )}
-                      {patient.allergies && patient.allergies.length > 0 && (
-                        <Badge variant="outline" className="text-xs text-amber-700 border-amber-300 bg-amber-100">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          {patient.allergies.length} allerg{patient.allergies.length > 1 ? 'ies' : 'y'}
-                        </Badge>
+                      
+                      {/* Emergency Contact - Always Visible */}
+                      {patient.emergency_contact_name && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          <span className="truncate">
+                            {patient.emergency_contact_name}
+                            {patient.emergency_contact_phone && ` (${patient.emergency_contact_phone})`}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-                
-                {/* Hover indicator */}
-                <div className="flex justify-end mt-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    View <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  
+                  {/* Action hint */}
+                  <div className="flex justify-end mt-2">
+                    {isActive ? (
+                      <span className="text-xs text-primary flex items-center gap-1">
+                        View Records <ArrowRight className="h-3 w-3" />
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <ScanLine className="h-3 w-3" /> Scan to access
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       ) : (
         <Card>
@@ -206,13 +197,11 @@ export default function Patients() {
             <Users className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="text-lg font-medium">No patients found</h3>
             <p className="text-muted-foreground mt-1 max-w-md mx-auto text-sm">
-              {search || bloodGroupFilter !== 'all' || genderFilter !== 'all' || conditionFilter !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Add your first patient to get started'}
+              {search ? 'Try adjusting your search' : 'Scan a CareTag to register new patients'}
             </p>
-            <Button className="mt-4 gap-2">
-              <Plus className="h-4 w-4" />
-              Add Patient
+            <Button className="mt-4 gap-2" onClick={() => navigate('/scan')}>
+              <ScanLine className="h-4 w-4" />
+              Scan CareTag
             </Button>
           </CardContent>
         </Card>

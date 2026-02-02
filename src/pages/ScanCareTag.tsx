@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wifi, CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2 } from 'lucide-react';
+import { Wifi, CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccessSession } from '@/hooks/useAccessSession';
 
-type ScanState = 'scanning' | 'manual' | 'detected' | 'loading' | 'creating' | 'redirecting';
+type ScanState = 'scanning' | 'manual' | 'detected' | 'loading' | 'creating' | 'session' | 'redirecting';
 
 const generateCareTagId = () => {
   const year = new Date().getFullYear();
@@ -93,7 +94,24 @@ export default function ScanCareTag() {
   const [manualId, setManualId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const simulationCancelledRef = useRef(false);
+  const { startSession } = useAccessSession();
 
+  // Helper to start session before navigating
+  const startSessionAndNavigate = async (patientId: string) => {
+    try {
+      setScanState('session');
+      await startSession(patientId);
+      toast.success('Access session started');
+      await new Promise(resolve => setTimeout(resolve, 600));
+      setScanState('redirecting');
+      await new Promise(resolve => setTimeout(resolve, 400));
+      navigate(`/patients/${patientId}`);
+    } catch (error) {
+      console.error('Failed to start session:', error);
+      toast.error('Failed to start access session');
+      navigate(`/patients/${patientId}`);
+    }
+  };
   // Cancel simulation when switching to manual mode
   const switchToManual = useCallback(() => {
     simulationCancelledRef.current = true;
@@ -135,10 +153,8 @@ export default function ScanCareTag() {
         setIsNewPatient(false);
         setScanState('loading');
         toast.success('Patient found!');
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        setScanState('redirecting');
-        await new Promise(resolve => setTimeout(resolve, 400));
-        navigate(`/patients/${existingPatient.id}`);
+        await new Promise(resolve => setTimeout(resolve, 800));
+        await startSessionAndNavigate(existingPatient.id);
       } else {
         // Create new patient
         setScanState('creating');
@@ -157,10 +173,8 @@ export default function ScanCareTag() {
         setPatient(newPatient);
         toast.success('New patient registered!');
         setScanState('loading');
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        setScanState('redirecting');
-        await new Promise(resolve => setTimeout(resolve, 400));
-        navigate(`/patients/${newPatient.id}`);
+        await new Promise(resolve => setTimeout(resolve, 800));
+        await startSessionAndNavigate(newPatient.id);
       }
     } catch (err) {
       console.error('Manual search error:', err);
@@ -206,12 +220,9 @@ export default function ScanCareTag() {
           setPatient(newPatient);
           toast.success('New patient registered!');
           
-          await new Promise(resolve => setTimeout(resolve, 1200));
+          await new Promise(resolve => setTimeout(resolve, 800));
           if (simulationCancelledRef.current) return;
-          setScanState('redirecting');
-          await new Promise(resolve => setTimeout(resolve, 400));
-          if (simulationCancelledRef.current) return;
-          navigate(`/patients/${newPatient.id}`);
+          await startSessionAndNavigate(newPatient.id);
         } else {
           const { data, error } = await supabase
             .from('patients')
@@ -226,12 +237,9 @@ export default function ScanCareTag() {
             setPatient(randomPatient);
             toast.success('Patient found!');
             
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            await new Promise(resolve => setTimeout(resolve, 800));
             if (simulationCancelledRef.current) return;
-            setScanState('redirecting');
-            await new Promise(resolve => setTimeout(resolve, 400));
-            if (simulationCancelledRef.current) return;
-            navigate(`/patients/${randomPatient.id}`);
+            await startSessionAndNavigate(randomPatient.id);
           } else {
             if (simulationCancelledRef.current) return;
             setScanState('creating');
@@ -250,12 +258,9 @@ export default function ScanCareTag() {
             setPatient(newPatient);
             toast.success('New patient registered!');
             
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            await new Promise(resolve => setTimeout(resolve, 800));
             if (simulationCancelledRef.current) return;
-            setScanState('redirecting');
-            await new Promise(resolve => setTimeout(resolve, 400));
-            if (simulationCancelledRef.current) return;
-            navigate(`/patients/${newPatient.id}`);
+            await startSessionAndNavigate(newPatient.id);
           }
         }
       } catch (err) {
@@ -274,8 +279,9 @@ export default function ScanCareTag() {
   }, [navigate, scanState, onTagDetected]);
 
   const isActive = scanState === 'scanning';
-  const isSuccess = scanState === 'detected' || scanState === 'loading' || scanState === 'redirecting';
+  const isSuccess = scanState === 'detected' || scanState === 'loading' || scanState === 'redirecting' || scanState === 'session';
   const isCreating = scanState === 'creating';
+  const isStartingSession = scanState === 'session';
 
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
@@ -309,7 +315,7 @@ export default function ScanCareTag() {
 
           {/* Center circle */}
           <div className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-            scanState === 'manual' ? 'bg-muted' : isActive ? 'bg-primary/10' : isCreating ? 'bg-primary/10' : isSuccess ? 'bg-success/10' : 'bg-muted'
+            scanState === 'manual' ? 'bg-muted' : isActive ? 'bg-primary/10' : isCreating ? 'bg-primary/10' : isStartingSession ? 'bg-primary/10' : isSuccess ? 'bg-success/10' : 'bg-muted'
           }`}>
             {scanState === 'manual' && (
               <Keyboard className="h-10 w-10 text-muted-foreground" />
@@ -320,7 +326,10 @@ export default function ScanCareTag() {
             {isCreating && (
               <UserPlus className="h-10 w-10 text-primary" />
             )}
-            {isSuccess && !isCreating && (
+            {isStartingSession && (
+              <ShieldCheck className="h-10 w-10 text-primary animate-pulse" />
+            )}
+            {isSuccess && !isCreating && !isStartingSession && (
               <CheckCircle2 className="h-10 w-10 text-success" />
             )}
           </div>

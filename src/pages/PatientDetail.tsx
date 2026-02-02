@@ -1,10 +1,10 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock, Mic, FlaskConical, UserCheck, Plus } from 'lucide-react';
+import { User, Heart, AlertTriangle, FileText, Pill, Activity, Calendar, Phone, Mail, MapPin, Clock, FlaskConical, UserCheck, Plus, ShieldAlert, ShieldCheck, ScanLine, LogOut } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInYears } from 'date-fns';
@@ -18,10 +18,18 @@ import { VoiceNotesHistory } from '@/components/voice/VoiceNotesHistory';
 import { LabResultsPanel } from '@/components/lab-results/LabResultsPanel';
 import { ReferralManagement } from '@/components/referrals/ReferralManagement';
 import { NewPrescriptionForm } from '@/components/prescriptions/NewPrescriptionForm';
+import { useAccessSession } from '@/hooks/useAccessSession';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 
 export default function PatientDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { activeSession, hasActiveSession, sessionLoading, endSession, isEnding } = useAccessSession(id);
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [showEndDialog, setShowEndDialog] = useState(false);
 
   const { data: patient, isLoading: patientLoading } = useQuery({
     queryKey: ['patient', id],
@@ -48,7 +56,7 @@ export default function PatientDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && hasActiveSession,
   });
 
   const { data: prescriptions, isLoading: prescriptionsLoading } = useQuery({
@@ -62,7 +70,7 @@ export default function PatientDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && hasActiveSession,
   });
 
   const { data: vitals, isLoading: vitalsLoading } = useQuery({
@@ -76,7 +84,7 @@ export default function PatientDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && hasActiveSession,
   });
 
   const { data: emergencyRecords } = useQuery({
@@ -90,10 +98,19 @@ export default function PatientDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && hasActiveSession,
   });
 
-  if (patientLoading) {
+  const handleEndSession = async () => {
+    if (activeSession) {
+      await endSession(activeSession.id, sessionNotes || undefined);
+      setShowEndDialog(false);
+      setSessionNotes('');
+      navigate('/patients');
+    }
+  };
+
+  if (patientLoading || sessionLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-start gap-4">
@@ -113,6 +130,63 @@ export default function PatientDetail() {
     return <div className="text-center py-12 text-muted-foreground">Patient not found</div>;
   }
 
+  // No active session - show limited view with scan prompt
+  if (!hasActiveSession) {
+    return (
+      <div className="space-y-6">
+        {/* Patient Header - Limited */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+              <User className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">{patient.full_name}</h1>
+              <p className="text-muted-foreground">{patient.caretag_id}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* No Access Card */}
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="p-8 text-center">
+            <ShieldAlert className="h-16 w-16 text-amber-600 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">No Active Access Session</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              To view this patient's medical records, prescriptions, and vitals, you need to scan their CareTag to start an access session.
+            </p>
+            <Button size="lg" onClick={() => navigate('/scan')} className="gap-2">
+              <ScanLine className="h-5 w-5" />
+              Scan CareTag
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Emergency Contact - Always Visible */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Emergency Contact
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {patient.emergency_contact_name ? (
+              <div className="space-y-1">
+                <p className="font-medium">{patient.emergency_contact_name}</p>
+                {patient.emergency_contact_phone && (
+                  <p className="text-muted-foreground">{patient.emergency_contact_phone}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No emergency contact on file</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const age = differenceInYears(new Date(), new Date(patient.date_of_birth));
 
   const vitalsChartData = vitals?.map(v => ({
@@ -126,6 +200,51 @@ export default function PatientDetail() {
 
   return (
     <div className="space-y-6">
+      {/* Active Session Banner */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            <div>
+              <p className="font-medium text-sm">Active Access Session</p>
+              <p className="text-xs text-muted-foreground">
+                Started {activeSession && format(new Date(activeSession.started_at), 'h:mm a')}
+              </p>
+            </div>
+          </div>
+          <Dialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <LogOut className="h-4 w-4" />
+                End Session
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>End Access Session</DialogTitle>
+                <DialogDescription>
+                  This will end your access to {patient.full_name}'s records. Add any session notes before ending.
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                placeholder="Optional session notes..."
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+                rows={4}
+              />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowEndDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEndSession} disabled={isEnding}>
+                  {isEnding ? 'Ending...' : 'End Session'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+
       {/* Patient Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
