@@ -1,8 +1,10 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   Calendar,
   Clock,
@@ -17,10 +19,47 @@ import {
   FileText,
   ArrowUpRight,
   Heart,
+  X,
+  Loader2,
 } from 'lucide-react';
 import { useDashboardStats, useRecentPatients, useTodayAppointments, useActiveEmergencies } from '@/hooks/useDashboardData';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAccessSession } from '@/hooks/useAccessSession';
+import { toast } from 'sonner';
+
+const SCAN_DURATION = 5;
+const DEMO_EXISTING_PATIENT_PROBABILITY = 0.7;
+
+const generateCareTagId = () => {
+  const year = new Date().getFullYear();
+  const randomNum = Math.floor(Math.random() * 9000) + 1000;
+  return `CT-${year}-${randomNum}`;
+};
+
+const generateRandomPatient = () => {
+  const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn', 'Avery', 'Skyler', 'Cameron'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const genders = ['Male', 'Female'];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const birthYear = 1950 + Math.floor(Math.random() * 60);
+  const birthMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+  const birthDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+  
+  return {
+    full_name: `${firstName} ${lastName}`,
+    caretag_id: generateCareTagId(),
+    date_of_birth: `${birthYear}-${birthMonth}-${birthDay}`,
+    gender: genders[Math.floor(Math.random() * genders.length)],
+    blood_group: bloodGroups[Math.floor(Math.random() * bloodGroups.length)],
+    phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
+  };
+};
 
 export function DoctorDashboard() {
   const navigate = useNavigate();
@@ -28,6 +67,88 @@ export function DoctorDashboard() {
   const { data: recentPatients, isLoading: patientsLoading } = useRecentPatients(4);
   const { data: todayAppointments, isLoading: appointmentsLoading } = useTodayAppointments();
   const { data: emergencies, isLoading: emergenciesLoading } = useActiveEmergencies();
+  const { startSession } = useAccessSession();
+  
+  // Demo scan state
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanTimer, setScanTimer] = useState(SCAN_DURATION);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'processing' | 'success'>('idle');
+
+  // Timer effect for demo scan
+  useEffect(() => {
+    if (!isScanning || scanStatus !== 'scanning') return;
+
+    if (scanTimer > 0) {
+      const timer = setTimeout(() => {
+        setScanTimer(prev => prev - 1);
+        setScanProgress(prev => Math.min(prev + (100 / SCAN_DURATION), 100));
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Timer complete - run demo scan
+      handleDemoScanComplete();
+    }
+  }, [isScanning, scanTimer, scanStatus]);
+
+  const startDemoScan = () => {
+    setIsScanning(true);
+    setScanTimer(SCAN_DURATION);
+    setScanProgress(0);
+    setScanStatus('scanning');
+  };
+
+  const cancelScan = () => {
+    setIsScanning(false);
+    setScanTimer(SCAN_DURATION);
+    setScanProgress(0);
+    setScanStatus('idle');
+  };
+
+  const handleDemoScanComplete = async () => {
+    setScanStatus('processing');
+    const shouldFindExisting = Math.random() < DEMO_EXISTING_PATIENT_PROBABILITY;
+
+    try {
+      if (shouldFindExisting) {
+        const { data: patients, error } = await supabase
+          .from('patients')
+          .select('id, full_name, caretag_id, blood_group')
+          .limit(10);
+
+        if (error) throw error;
+
+        if (patients && patients.length > 0) {
+          const randomPatient = patients[Math.floor(Math.random() * patients.length)];
+          await startSession(randomPatient.id);
+          toast.success(`Session started for ${randomPatient.full_name}`);
+          setScanStatus('success');
+          setTimeout(() => navigate(`/patients/${randomPatient.id}`), 500);
+          return;
+        }
+      }
+
+      // Create new patient
+      const newPatientData = generateRandomPatient();
+      const { data: newPatient, error: insertError } = await supabase
+        .from('patients')
+        .insert(newPatientData)
+        .select('id, full_name, caretag_id, blood_group')
+        .single();
+
+      if (insertError) throw insertError;
+
+      await startSession(newPatient.id);
+      toast.success(`New patient ${newPatient.full_name} registered!`);
+      setScanStatus('success');
+      setTimeout(() => navigate(`/patients/${newPatient.id}`), 500);
+
+    } catch (err) {
+      console.error('Demo scan error:', err);
+      toast.error('Scan failed');
+      cancelScan();
+    }
+  };
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
@@ -76,6 +197,66 @@ export function DoctorDashboard() {
     },
   ];
 
+  // Demo scan overlay
+  if (isScanning) {
+    return (
+      <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={cancelScan}
+          className="absolute top-6 right-6 h-12 w-12 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
+        >
+          <X className="h-6 w-6" />
+        </Button>
+
+        <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
+          {scanStatus === 'scanning' && (
+            <>
+              <div className="relative flex items-center justify-center">
+                <div className="h-28 w-28 rounded-full border-4 border-primary/20 flex items-center justify-center">
+                  <span className="text-5xl font-bold text-primary">{scanTimer}</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-28 w-28 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                </div>
+              </div>
+              <div className="w-full max-w-[200px]">
+                <Progress value={scanProgress} className="h-2" />
+              </div>
+              <div className="text-center space-y-2">
+                <h1 className="text-lg font-semibold text-foreground">Scanning CareTag...</h1>
+                <p className="text-sm text-muted-foreground">Reading patient information</p>
+              </div>
+              <Button variant="outline" onClick={cancelScan} className="gap-2">
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+            </>
+          )}
+
+          {scanStatus === 'processing' && (
+            <div className="text-center space-y-4">
+              <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+              <h1 className="text-lg font-semibold">Processing...</h1>
+              <p className="text-sm text-muted-foreground">Starting session</p>
+            </div>
+          )}
+
+          {scanStatus === 'success' && (
+            <div className="text-center space-y-4">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <ScanLine className="h-8 w-8 text-primary" />
+              </div>
+              <h1 className="text-lg font-semibold text-primary">Success!</h1>
+              <p className="text-sm text-muted-foreground">Redirecting to patient...</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -89,7 +270,7 @@ export function DoctorDashboard() {
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
-            onClick={() => navigate('/scan')} 
+            onClick={startDemoScan} 
             className="gap-2"
           >
             <ScanLine className="h-4 w-4" />
@@ -154,7 +335,7 @@ export function DoctorDashboard() {
         <div className="flex flex-wrap gap-2">
           {[
             { label: 'New Patient', icon: Plus, onClick: () => navigate('/patients?action=new') },
-            { label: 'Scan CareTag', icon: ScanLine, onClick: () => navigate('/scan') },
+            { label: 'Scan CareTag', icon: ScanLine, onClick: startDemoScan },
             { label: 'Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new') },
             { label: 'Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new') },
           ].map((action) => (
