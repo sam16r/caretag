@@ -1,16 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2, ShieldCheck, Camera, Smartphone, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2, ShieldCheck, Camera, Smartphone, AlertCircle, XCircle, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useAccessSession } from '@/hooks/useAccessSession';
 import { useQrScanner } from '@/hooks/useQrScanner';
 import { useNfcScanner } from '@/hooks/useNfcScanner';
 
-type ScanState = 'idle' | 'qr' | 'nfc' | 'manual' | 'detected' | 'loading' | 'creating' | 'session' | 'redirecting' | 'mismatch';
+type ScanState = 'idle' | 'demo' | 'qr' | 'nfc' | 'manual' | 'detected' | 'loading' | 'creating' | 'session' | 'redirecting' | 'mismatch';
+
+// Configurable probability for demo scan (0-1, default 0.7 = 70% existing patient)
+const DEMO_EXISTING_PATIENT_PROBABILITY = 0.7;
 
 const generateCareTagId = () => {
   const year = new Date().getFullYear();
@@ -91,7 +95,8 @@ export default function ScanCareTag() {
   const expectedPatientName = searchParams.get('name') || null;
   const expectedPatientId = searchParams.get('id') || null;
   
-  const [scanState, setScanState] = useState<ScanState>('idle');
+  // Start in demo mode by default (unless expecting a specific patient)
+  const [scanState, setScanState] = useState<ScanState>(expectedCaretagId ? 'idle' : 'demo');
   const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string | null } | null>(null);
   const [isNewPatient, setIsNewPatient] = useState(false);
   const [manualId, setManualId] = useState('');
@@ -99,6 +104,7 @@ export default function ScanCareTag() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [rfidBuffer, setRfidBuffer] = useState('');
   const [scannedMismatchId, setScannedMismatchId] = useState<string | null>(null);
+  const [demoTimer, setDemoTimer] = useState(5);
   const rfidTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const processingRef = useRef(false);
   const { startSession } = useAccessSession();
@@ -289,6 +295,8 @@ export default function ScanCareTag() {
       await stopQrScan();
     } else if (scanState === 'nfc') {
       stopNfcScan();
+    } else if (scanState === 'demo') {
+      setDemoTimer(5);
     }
     setScanState('idle');
   };
@@ -318,6 +326,107 @@ export default function ScanCareTag() {
     setScanError(qrError || nfcError || null);
   }, [qrError, nfcError]);
 
+  // Demo timer countdown effect
+  useEffect(() => {
+    if (scanState !== 'demo') return;
+
+    if (demoTimer > 0) {
+      const timer = setTimeout(() => {
+        setDemoTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Timer finished - run the demo scan
+      handleDemoScanComplete();
+    }
+  }, [scanState, demoTimer]);
+
+  // Demo scan complete - randomly pick existing or create new patient
+  const handleDemoScanComplete = async () => {
+    const shouldFindExisting = Math.random() < DEMO_EXISTING_PATIENT_PROBABILITY;
+    
+    try {
+      playDetectionSound();
+      triggerHapticFeedback();
+      setScanState('detected');
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      if (shouldFindExisting) {
+        // Try to find an existing patient
+        setScanState('loading');
+        const { data: patients, error } = await supabase
+          .from('patients')
+          .select('id, full_name, caretag_id, blood_group')
+          .limit(10);
+
+        if (error) throw error;
+
+        if (patients && patients.length > 0) {
+          const randomPatient = patients[Math.floor(Math.random() * patients.length)];
+          setPatient(randomPatient);
+          setIsNewPatient(false);
+          toast.success('Patient found!');
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          // Start session
+          setScanState('session');
+          await startSession(randomPatient.id);
+          toast.success('Access session started');
+          await new Promise(resolve => setTimeout(resolve, 600));
+          setScanState('redirecting');
+          await new Promise(resolve => setTimeout(resolve, 400));
+          navigate(`/patients/${randomPatient.id}`);
+        } else {
+          // No patients exist, create new one
+          await createNewDemoPatient();
+        }
+      } else {
+        // Create new patient
+        await createNewDemoPatient();
+      }
+    } catch (err) {
+      console.error('Demo scan error:', err);
+      toast.error('Failed to complete scan');
+      setScanState('idle');
+      setDemoTimer(5);
+    }
+  };
+
+  // Helper to create a new demo patient
+  const createNewDemoPatient = async () => {
+    setScanState('creating');
+    setIsNewPatient(true);
+    const newPatientData = generateRandomPatient();
+    
+    const { data: newPatient, error: insertError } = await supabase
+      .from('patients')
+      .insert(newPatientData)
+      .select('id, full_name, caretag_id, blood_group')
+      .single();
+
+    if (insertError) throw insertError;
+
+    setPatient(newPatient);
+    toast.success('New patient registered!');
+    setScanState('loading');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Start session
+    setScanState('session');
+    await startSession(newPatient.id);
+    toast.success('Access session started');
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setScanState('redirecting');
+    await new Promise(resolve => setTimeout(resolve, 400));
+    navigate(`/patients/${newPatient.id}`);
+  };
+
+  // Start demo scan
+  const startDemoScan = () => {
+    setDemoTimer(5);
+    setScanState('demo');
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -346,6 +455,34 @@ export default function ScanCareTag() {
       </Button>
 
       <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
+        {/* Demo scanning state - 5 second countdown */}
+        {scanState === 'demo' && (
+          <>
+            <div className="relative flex items-center justify-center">
+              <div className="h-28 w-28 rounded-full border-4 border-primary/20 flex items-center justify-center">
+                <span className="text-5xl font-bold text-primary">{demoTimer}</span>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-28 w-28 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              </div>
+            </div>
+            <div className="w-full max-w-[200px]">
+              <Progress value={(5 - demoTimer) * 20} className="h-2" />
+            </div>
+            <div className="text-center space-y-2">
+              <h1 className="text-lg font-semibold text-foreground">Scanning CareTag...</h1>
+              <p className="text-sm text-muted-foreground">Reading patient information</p>
+            </div>
+            <Button variant="outline" onClick={handleStopScan} className="gap-2">
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Demo: {Math.round(DEMO_EXISTING_PATIENT_PROBABILITY * 100)}% existing, {Math.round((1 - DEMO_EXISTING_PATIENT_PROBABILITY) * 100)}% new patient
+            </p>
+          </>
+        )}
+
         {/* Idle state - waiting for RFID scan */}
         {scanState === 'idle' && (
           <>
@@ -369,7 +506,7 @@ export default function ScanCareTag() {
               ) : (
                 <>
                   <h1 className="text-lg font-semibold text-foreground">Ready to Scan</h1>
-                  <p className="text-sm text-muted-foreground">Tap the RFID CareTag on the reader</p>
+                  <p className="text-sm text-muted-foreground">Tap the RFID CareTag on the reader or use demo mode</p>
                 </>
               )}
               <div className="flex items-center justify-center gap-1 pt-1">
@@ -382,6 +519,12 @@ export default function ScanCareTag() {
               )}
             </div>
             <div className="flex flex-col gap-2 w-full max-w-xs">
+              {!expectedCaretagId && (
+                <Button onClick={startDemoScan} className="gap-2 w-full">
+                  <Timer className="h-4 w-4" />
+                  Demo Scan (5s)
+                </Button>
+              )}
               {nfcSupported && (
                 <Button onClick={handleStartNfc} variant="outline" className="gap-2 w-full">
                   <Smartphone className="h-4 w-4" />
