@@ -290,20 +290,18 @@ export default function ScanCareTag() {
 
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-      {/* Close button */}
-      {(scanState === 'idle' || scanState === 'manual' || scanState === 'qr' || scanState === 'nfc') && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            handleStopScan();
-            navigate(-1);
-          }}
-          className="absolute top-6 right-6 h-10 w-10 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      )}
+      {/* Close button - always visible in top right */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => {
+          handleStopScan();
+          navigate(-1);
+        }}
+        className="absolute top-6 right-6 h-12 w-12 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
+      >
+        <X className="h-6 w-6" />
+      </Button>
 
       <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
         {/* Idle state - waiting for RFID scan */}
