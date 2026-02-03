@@ -14,6 +14,7 @@ import { Plus, Trash2, FileText, Pill, Search, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { format, addMonths } from 'date-fns';
+import { DrugInputWithValidation } from './DrugInputWithValidation';
 
 interface Medication {
   name: string;
@@ -305,10 +306,10 @@ export function NewPrescriptionForm({
                   <div key={i} className="grid grid-cols-5 gap-2 items-end">
                     <div>
                       {i === 0 && <Label className="text-xs text-muted-foreground">Drug Name</Label>}
-                      <Input
-                        placeholder="Medication"
+                      <DrugInputWithValidation
                         value={med.name}
-                        onChange={(e) => updateMedication(i, 'name', e.target.value)}
+                        onChange={(value) => updateMedication(i, 'name', value)}
+                        placeholder="Medication"
                       />
                     </div>
                     <div>
