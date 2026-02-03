@@ -26,8 +26,18 @@ import { useDashboardStats, useRecentPatients, useTodayAppointments, useActiveEm
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useAccessSession } from '@/hooks/useAccessSession';
+import { useAccessSession, useActiveSessions } from '@/hooks/useAccessSession';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const SCAN_DURATION = 5;
 const DEMO_EXISTING_PATIENT_PROBABILITY = 0.7;
@@ -68,12 +78,18 @@ export function DoctorDashboard() {
   const { data: todayAppointments, isLoading: appointmentsLoading } = useTodayAppointments();
   const { data: emergencies, isLoading: emergenciesLoading } = useActiveEmergencies();
   const { startSession } = useAccessSession();
+  const { data: activeSessions } = useActiveSessions();
+  
+  // Check if there's already an active session
+  const currentActiveSession = activeSessions?.[0];
+  const hasActiveSession = !!currentActiveSession;
   
   // Demo scan state
   const [isScanning, setIsScanning] = useState(false);
   const [scanTimer, setScanTimer] = useState(SCAN_DURATION);
   const [scanProgress, setScanProgress] = useState(0);
   const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'processing' | 'success'>('idle');
+  const [showActiveSessionDialog, setShowActiveSessionDialog] = useState(false);
 
   // Timer effect for demo scan
   useEffect(() => {
@@ -90,6 +106,14 @@ export function DoctorDashboard() {
       handleDemoScanComplete();
     }
   }, [isScanning, scanTimer, scanStatus]);
+
+  const handleScanClick = () => {
+    if (hasActiveSession) {
+      setShowActiveSessionDialog(true);
+      return;
+    }
+    startDemoScan();
+  };
 
   const startDemoScan = () => {
     setIsScanning(true);
@@ -270,11 +294,15 @@ export function DoctorDashboard() {
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
-            onClick={startDemoScan} 
-            className="gap-2 animate-pulse hover:animate-none border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+            onClick={handleScanClick} 
+            disabled={hasActiveSession}
+            className={cn(
+              "gap-2",
+              !hasActiveSession && "animate-pulse hover:animate-none border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+            )}
           >
             <ScanLine className="h-4 w-4" />
-            Scan CareTag
+            {hasActiveSession ? 'Session Active' : 'Scan CareTag'}
           </Button>
           <Button 
             onClick={() => navigate('/emergency')} 
@@ -286,6 +314,37 @@ export function DoctorDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Active Session Warning Dialog */}
+      <AlertDialog open={showActiveSessionDialog} onOpenChange={setShowActiveSessionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Active Session in Progress
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                You already have an active session with{' '}
+                <span className="font-semibold text-foreground">
+                  {(currentActiveSession?.patients as any)?.full_name || 'a patient'}
+                </span>.
+              </p>
+              <p>
+                Please end your current session before scanning a new CareTag.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => navigate(`/patients/${currentActiveSession?.patient_id}`)}
+            >
+              Go to Current Patient
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -334,15 +393,16 @@ export function DoctorDashboard() {
         <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
           {[
-            { label: 'New Patient', icon: Plus, onClick: () => navigate('/patients?action=new') },
-            { label: 'Scan CareTag', icon: ScanLine, onClick: startDemoScan },
-            { label: 'Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new') },
-            { label: 'Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new') },
+            { label: 'New Patient', icon: Plus, onClick: () => navigate('/patients?action=new'), disabled: false },
+            { label: hasActiveSession ? 'Session Active' : 'Scan CareTag', icon: ScanLine, onClick: handleScanClick, disabled: hasActiveSession },
+            { label: 'Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new'), disabled: false },
+            { label: 'Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new'), disabled: false },
           ].map((action) => (
             <Button
               key={action.label}
               variant="outline"
               size="sm"
+              disabled={action.disabled}
               className="gap-2"
               onClick={action.onClick}
             >
