@@ -97,8 +97,8 @@ export default function Reports() {
                   <ChartLine className="h-3.5 w-3.5" /> Registered
                 </p>
               </div>
-              <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25">
-                <UserRound className="h-7 w-7 text-primary-foreground" />
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <UserRound className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -114,8 +114,8 @@ export default function Reports() {
                   {analytics?.totalPatients ? Math.round((analytics.patientsWithConditions / analytics.totalPatients) * 100) : 0}% of patients
                 </p>
               </div>
-              <div className="h-14 w-14 rounded-2xl gradient-accent flex items-center justify-center shadow-lg shadow-accent/25">
-                <Stethoscope className="h-7 w-7 text-accent-foreground" />
+              <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Stethoscope className="h-6 w-6 text-accent" />
               </div>
             </div>
           </CardContent>
@@ -131,8 +131,8 @@ export default function Reports() {
                   <CircleAlert className="h-3.5 w-3.5" /> Documented
                 </p>
               </div>
-              <div className="h-14 w-14 rounded-2xl bg-warning flex items-center justify-center shadow-lg shadow-warning/25">
-                <HeartPulse className="h-7 w-7 text-warning-foreground" />
+              <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
+                <HeartPulse className="h-6 w-6 text-warning" />
               </div>
             </div>
           </CardContent>
@@ -146,8 +146,8 @@ export default function Reports() {
                 <p className="text-4xl font-bold tracking-tight">{analytics?.totalPrescriptions}</p>
                 <p className="text-sm text-muted-foreground">Last 30 days</p>
               </div>
-              <div className="h-14 w-14 rounded-2xl bg-success flex items-center justify-center shadow-lg shadow-success/25">
-                <Pill className="h-7 w-7 text-success-foreground" />
+              <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center">
+                <Pill className="h-6 w-6 text-success" />
               </div>
             </div>
           </CardContent>
