@@ -2,16 +2,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Users,
-  Calendar,
-  AlertTriangle,
+  UserRound,
+  CalendarCheck,
+  Siren,
   Pill,
-  TrendingUp,
-  Heart,
-  Activity,
-  Droplets,
+  ChartLine,
+  Stethoscope,
+  HeartPulse,
+  Droplet,
   UserCheck,
-  AlertCircle,
+  CircleAlert,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -94,11 +94,11 @@ export default function Reports() {
                 <p className="text-sm font-medium text-muted-foreground">Total Patients</p>
                 <p className="text-4xl font-bold tracking-tight">{analytics?.totalPatients}</p>
                 <p className="text-sm text-success font-medium flex items-center gap-1">
-                  <TrendingUp className="h-3.5 w-3.5" /> Registered
+                  <ChartLine className="h-3.5 w-3.5" /> Registered
                 </p>
               </div>
               <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25">
-                <Users className="h-7 w-7 text-primary-foreground" />
+                <UserRound className="h-7 w-7 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
@@ -115,7 +115,7 @@ export default function Reports() {
                 </p>
               </div>
               <div className="h-14 w-14 rounded-2xl gradient-accent flex items-center justify-center shadow-lg shadow-accent/25">
-                <Heart className="h-7 w-7 text-accent-foreground" />
+                <Stethoscope className="h-7 w-7 text-accent-foreground" />
               </div>
             </div>
           </CardContent>
@@ -128,11 +128,11 @@ export default function Reports() {
                 <p className="text-sm font-medium text-muted-foreground">With Allergies</p>
                 <p className="text-4xl font-bold tracking-tight">{analytics?.patientsWithAllergies}</p>
                 <p className="text-sm text-warning font-medium flex items-center gap-1">
-                  <AlertCircle className="h-3.5 w-3.5" /> Documented
+                  <CircleAlert className="h-3.5 w-3.5" /> Documented
                 </p>
               </div>
               <div className="h-14 w-14 rounded-2xl bg-warning flex items-center justify-center shadow-lg shadow-warning/25">
-                <AlertTriangle className="h-7 w-7 text-warning-foreground" />
+                <HeartPulse className="h-7 w-7 text-warning-foreground" />
               </div>
             </div>
           </CardContent>
@@ -160,7 +160,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <TrendingUp className="h-4.5 w-4.5 text-primary" />
+                <ChartLine className="h-4.5 w-4.5 text-primary" />
               </div>
               Patient Registration Trend (Last 14 Days)
             </CardTitle>
@@ -250,7 +250,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center">
-                <Users className="h-4.5 w-4.5 text-success" />
+                <UserRound className="h-4.5 w-4.5 text-success" />
               </div>
               Age Distribution
             </CardTitle>
@@ -281,7 +281,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-emergency/10 flex items-center justify-center">
-                <Droplets className="h-4.5 w-4.5 text-emergency" />
+                <Droplet className="h-4.5 w-4.5 text-emergency" />
               </div>
               Blood Group Distribution
             </CardTitle>
@@ -312,7 +312,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center">
-                <Activity className="h-4.5 w-4.5 text-warning" />
+                <Stethoscope className="h-4.5 w-4.5 text-warning" />
               </div>
               Top Chronic Conditions
             </CardTitle>
@@ -348,7 +348,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-emergency/10 flex items-center justify-center">
-                <AlertTriangle className="h-4.5 w-4.5 text-emergency" />
+                <Siren className="h-4.5 w-4.5 text-emergency" />
               </div>
               Common Allergies
             </CardTitle>
@@ -383,7 +383,7 @@ export default function Reports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2.5 text-lg font-semibold">
               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Calendar className="h-4.5 w-4.5 text-primary" />
+                <CalendarCheck className="h-4.5 w-4.5 text-primary" />
               </div>
               Appointment Status (30 Days)
             </CardTitle>
