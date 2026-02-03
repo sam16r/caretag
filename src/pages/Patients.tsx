@@ -8,9 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Search, ScanLine, Users, ArrowRight, Phone, ShieldAlert, Lock, Loader2 } from 'lucide-react';
+import { Search, ScanLine, Users, ArrowRight, Phone, ShieldAlert, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { useActiveSessions, useAccessSession } from '@/hooks/useAccessSession';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const SCAN_DURATION = 5; // seconds
 
@@ -23,7 +33,12 @@ export default function Patients() {
   const [scanningPatientId, setScanningPatientId] = useState<string | null>(null);
   const [scanTimer, setScanTimer] = useState(SCAN_DURATION);
   const [scanProgress, setScanProgress] = useState(0);
+  const [showActiveSessionDialog, setShowActiveSessionDialog] = useState(false);
   const { startSession, isStarting } = useAccessSession(scanningPatientId || undefined);
+
+  // Check if there's any active session
+  const hasActiveSession = activeSessions && activeSessions.length > 0;
+  const currentActiveSession = hasActiveSession ? activeSessions[0] : null;
 
   // Scan timer effect
   useEffect(() => {
@@ -50,10 +65,31 @@ export default function Patients() {
     }
   }, [scanTimer, scanningPatientId]);
 
-  const handlePatientCardClick = (patientId: string) => {
+  const handlePatientCardClick = (patientId: string, isActive: boolean) => {
+    // If this patient already has an active session, go directly
+    if (isActive) {
+      navigate(`/patients/${patientId}`);
+      return;
+    }
+    
+    // If there's another active session, show warning dialog
+    if (hasActiveSession) {
+      setShowActiveSessionDialog(true);
+      return;
+    }
+    
+    // No active session, start scanning
     setScanningPatientId(patientId);
     setScanTimer(SCAN_DURATION);
     setScanProgress(0);
+  };
+
+  const handleScanButtonClick = () => {
+    if (hasActiveSession) {
+      setShowActiveSessionDialog(true);
+      return;
+    }
+    navigate('/scan');
   };
 
   const handleScanComplete = async (patientId: string) => {
@@ -91,13 +127,40 @@ export default function Patients() {
     return matchesSearch;
   });
 
-  // Check if patient has active session
-  const hasActiveSession = (patientId: string) => {
+  // Check if a specific patient has active session
+  const patientHasActiveSession = (patientId: string) => {
     return activeSessions?.some(s => s.patient_id === patientId);
   };
 
   return (
     <div className="space-y-6">
+      {/* Active Session Warning Dialog */}
+      <AlertDialog open={showActiveSessionDialog} onOpenChange={setShowActiveSessionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Session Already Active
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You currently have an active session with{' '}
+              <span className="font-medium text-foreground">
+                {currentActiveSession?.patients?.full_name || 'a patient'}
+              </span>
+              . You must end the current session before starting a new one.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => navigate(`/patients/${currentActiveSession?.patient_id}`)}
+            >
+              Go to Current Patient
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Security Notice */}
       <Card className="border-amber-200 bg-amber-50/50">
         <CardContent className="p-4 flex items-start gap-3">
@@ -120,9 +183,23 @@ export default function Patients() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="gap-2" onClick={() => navigate('/scan')}>
-            <ScanLine className="h-4 w-4" />
-            Scan CareTag
+          <Button 
+            className="gap-2" 
+            onClick={handleScanButtonClick}
+            disabled={hasActiveSession}
+            variant={hasActiveSession ? "outline" : "default"}
+          >
+            {hasActiveSession ? (
+              <>
+                <Lock className="h-4 w-4" />
+                Session Active
+              </>
+            ) : (
+              <>
+                <ScanLine className="h-4 w-4" />
+                Scan CareTag
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -180,7 +257,7 @@ export default function Patients() {
       ) : filteredPatients && filteredPatients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPatients.map((patient) => {
-            const isActive = hasActiveSession(patient.id);
+            const isActive = patientHasActiveSession(patient.id);
             const isScanning = scanningPatientId === patient.id;
             return (
               <Card 
@@ -190,13 +267,7 @@ export default function Patients() {
                 } ${isScanning ? 'border-primary ring-2 ring-primary/20' : ''}`}
                 onClick={() => {
                   if (isScanning) return; // Already scanning this patient
-                  if (isActive) {
-                    // Already have session, go directly to patient
-                    navigate(`/patients/${patient.id}`);
-                  } else {
-                    // Start inline scan simulation
-                    handlePatientCardClick(patient.id);
-                  }
+                  handlePatientCardClick(patient.id, isActive || false);
                 }}
               >
                 <CardContent className="p-4">
@@ -255,6 +326,10 @@ export default function Patients() {
                           <span className="text-xs text-primary flex items-center gap-1">
                             View Records <ArrowRight className="h-3 w-3" />
                           </span>
+                        ) : hasActiveSession ? (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Lock className="h-3 w-3" /> End session first
+                          </span>
                         ) : (
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <ScanLine className="h-3 w-3" /> Tap to scan
@@ -276,7 +351,11 @@ export default function Patients() {
             <p className="text-muted-foreground mt-1 max-w-md mx-auto text-sm">
               {search ? 'Try adjusting your search' : 'Scan a CareTag to register new patients'}
             </p>
-            <Button className="mt-4 gap-2" onClick={() => navigate('/scan')}>
+            <Button 
+              className="mt-4 gap-2" 
+              onClick={handleScanButtonClick}
+              disabled={hasActiveSession}
+            >
               <ScanLine className="h-4 w-4" />
               Scan CareTag
             </Button>
