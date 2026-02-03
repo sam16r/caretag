@@ -14,13 +14,15 @@ interface DrugSuggestion {
 interface DrugInputWithValidationProps {
   value: string;
   onChange: (value: string) => void;
+  onValidationChange?: (isValid: boolean) => void;
   placeholder?: string;
   className?: string;
 }
 
 export function DrugInputWithValidation({ 
   value, 
-  onChange, 
+  onChange,
+  onValidationChange,
   placeholder = "Medication name",
   className 
 }: DrugInputWithValidationProps) {
@@ -45,11 +47,22 @@ export function DrugInputWithValidation({
 
   const { data, isLoading, isFetching } = useDrugValidation(debouncedValue, debouncedValue.length >= 2);
 
+  // Report validation status to parent
+  useEffect(() => {
+    if (onValidationChange && data) {
+      onValidationChange(data.valid === true);
+    }
+  }, [data, onValidationChange]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     onChange(newValue);
     setShowSuggestions(true);
+    // Reset validation when typing
+    if (onValidationChange && newValue !== inputValue) {
+      onValidationChange(false);
+    }
   };
 
   const handleSuggestionClick = (suggestion: DrugSuggestion) => {
@@ -57,6 +70,10 @@ export function DrugInputWithValidation({
     setInputValue(selectedName);
     onChange(selectedName);
     setShowSuggestions(false);
+    // Mark as valid when selecting from suggestions
+    if (onValidationChange) {
+      onValidationChange(true);
+    }
   };
 
   const isValidating = isLoading || isFetching;

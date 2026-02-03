@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,17 +11,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Trash2, FileText, Pill, Search, Star } from 'lucide-react';
+import { Plus, Trash2, FileText, Pill, Search, Star, AlertTriangle, ShieldX, ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { format, addMonths } from 'date-fns';
 import { DrugInputWithValidation } from './DrugInputWithValidation';
+import { useDrugValidation } from '@/hooks/useDrugValidation';
+import { debounce } from '@/lib/utils';
 
 interface Medication {
   name: string;
   dosage: string;
   frequency: string;
   duration: string;
+}
+
+interface DrugInteraction {
+  drug1: string;
+  drug2: string;
+  severity: 'low' | 'moderate' | 'high' | 'critical';
+  description: string;
+  recommendation: string;
 }
 
 interface Template {
@@ -68,6 +79,68 @@ export function NewPrescriptionForm({
     medications: [{ name: '', dosage: '', frequency: '', duration: '' }] as Medication[]
   });
 
+  // Drug validation tracking
+  const [drugValidationStatus, setDrugValidationStatus] = useState<Record<number, boolean>>({});
+  
+  // Drug interactions state
+  const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
+  const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
+  const [lastCheckedDrugs, setLastCheckedDrugs] = useState<string[]>([]);
+  
+  // Warning dialog state
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [warningType, setWarningType] = useState<'unverified' | 'interactions' | 'both'>('unverified');
+
+  // Check drug interactions when medications change
+  const checkDrugInteractions = useCallback(async (drugNames: string[]) => {
+    if (drugNames.length < 2) {
+      setInteractions([]);
+      return;
+    }
+
+    // Only check if drugs have changed
+    const sortedDrugs = [...drugNames].sort();
+    if (JSON.stringify(sortedDrugs) === JSON.stringify(lastCheckedDrugs)) {
+      return;
+    }
+
+    setIsCheckingInteractions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-drug-interactions', {
+        body: { drugs: drugNames }
+      });
+
+      if (error) throw error;
+      setInteractions(data.interactions || []);
+      setLastCheckedDrugs(sortedDrugs);
+    } catch (error) {
+      console.error('Error checking drug interactions:', error);
+    } finally {
+      setIsCheckingInteractions(false);
+    }
+  }, [lastCheckedDrugs]);
+
+  // Debounced interaction check
+  const debouncedCheckInteractions = useCallback(
+    debounce((drugs: string[]) => {
+      checkDrugInteractions(drugs);
+    }, 1000),
+    [checkDrugInteractions]
+  );
+
+  // Check interactions when medications change
+  useEffect(() => {
+    const validDrugs = form.medications
+      .map(m => m.name.trim())
+      .filter(name => name.length >= 2);
+    
+    if (validDrugs.length >= 2) {
+      debouncedCheckInteractions(validDrugs);
+    } else {
+      setInteractions([]);
+    }
+  }, [form.medications, debouncedCheckInteractions]);
+
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -83,6 +156,9 @@ export function NewPrescriptionForm({
         maxRefills: 0,
         medications: [{ name: '', dosage: '', frequency: '', duration: '' }]
       });
+      setDrugValidationStatus({});
+      setInteractions([]);
+      setLastCheckedDrugs([]);
       if (!preselectedPatientId) {
         setSelectedPatient(null);
         setPatientSearch('');
@@ -197,9 +273,124 @@ export function NewPrescriptionForm({
     }
   };
 
+  // Update drug validation status
+  const updateDrugValidation = (index: number, isValid: boolean) => {
+    setDrugValidationStatus(prev => ({ ...prev, [index]: isValid }));
+  };
+
+  // Check if there are unverified drugs
+  const getUnverifiedDrugs = () => {
+    return form.medications
+      .filter((med, index) => med.name.trim().length >= 2 && !drugValidationStatus[index])
+      .map(med => med.name);
+  };
+
+  // Check for dangerous interactions (high or critical)
+  const getDangerousInteractions = () => {
+    return interactions.filter(i => i.severity === 'high' || i.severity === 'critical');
+  };
+
+  // Handle submit with validation checks
+  const handleSubmitClick = () => {
+    const unverifiedDrugs = getUnverifiedDrugs();
+    const dangerousInteractions = getDangerousInteractions();
+    
+    if (unverifiedDrugs.length > 0 && dangerousInteractions.length > 0) {
+      setWarningType('both');
+      setShowWarningDialog(true);
+    } else if (unverifiedDrugs.length > 0) {
+      setWarningType('unverified');
+      setShowWarningDialog(true);
+    } else if (dangerousInteractions.length > 0) {
+      setWarningType('interactions');
+      setShowWarningDialog(true);
+    } else {
+      createMutation.mutate();
+    }
+  };
+
+  const confirmSubmit = () => {
+    setShowWarningDialog(false);
+    createMutation.mutate();
+  };
+
   const canSubmit = selectedPatient && form.medications.some(m => m.name);
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'bg-destructive text-destructive-foreground';
+      case 'high': return 'bg-orange-500 text-white';
+      case 'moderate': return 'bg-yellow-500 text-white';
+      default: return 'bg-blue-500 text-white';
+    }
+  };
+
   return (
+    <>
+    {/* Warning Dialog */}
+    <AlertDialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+      <AlertDialogContent className="max-w-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            {warningType === 'both' ? 'Multiple Warnings' : 
+             warningType === 'unverified' ? 'Unverified Medications' : 'Drug Interactions Detected'}
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-4">
+              {(warningType === 'unverified' || warningType === 'both') && (
+                <div className="space-y-2">
+                  <p className="font-medium text-foreground">The following medications could not be verified in the FDA database:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {getUnverifiedDrugs().map((drug, i) => (
+                      <Badge key={i} variant="outline" className="border-destructive text-destructive">
+                        {drug}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {(warningType === 'interactions' || warningType === 'both') && (
+                <div className="space-y-2">
+                  <p className="font-medium text-foreground">Dangerous drug interactions detected:</p>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {getDangerousInteractions().map((interaction, i) => (
+                      <div key={i} className="p-2 rounded bg-destructive/10 border border-destructive/20">
+                        <div className="flex items-center gap-2">
+                          <ShieldX className="h-4 w-4 text-destructive" />
+                          <span className="font-medium text-sm">
+                            {interaction.drug1} + {interaction.drug2}
+                          </span>
+                          <Badge className={getSeverityColor(interaction.severity)}>
+                            {interaction.severity.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{interaction.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to proceed with this prescription?
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel & Review</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={confirmSubmit}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Proceed Anyway
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
@@ -309,6 +500,7 @@ export function NewPrescriptionForm({
                       <DrugInputWithValidation
                         value={med.name}
                         onChange={(value) => updateMedication(i, 'name', value)}
+                        onValidationChange={(isValid) => updateDrugValidation(i, isValid)}
                         placeholder="Medication"
                       />
                     </div>
@@ -351,6 +543,54 @@ export function NewPrescriptionForm({
                 </Button>
               </div>
             </div>
+
+            {/* Drug Interactions Warning */}
+            {(interactions.length > 0 || isCheckingInteractions) && (
+              <Card className={interactions.some(i => i.severity === 'critical' || i.severity === 'high') 
+                ? 'border-destructive/50 bg-destructive/5' 
+                : 'border-yellow-500/50 bg-yellow-500/5'}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    {isCheckingInteractions ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm font-medium">Checking drug interactions...</span>
+                      </>
+                    ) : interactions.length === 0 ? (
+                      <>
+                        <ShieldCheck className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-700">No interactions detected</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                        <span className="text-sm font-medium">
+                          {interactions.length} Drug Interaction{interactions.length > 1 ? 's' : ''} Detected
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  
+                  {interactions.length > 0 && (
+                    <div className="space-y-2">
+                      {interactions.map((interaction, i) => (
+                        <div key={i} className="flex items-start gap-2 p-2 rounded bg-background/80 border">
+                          <Badge className={getSeverityColor(interaction.severity)}>
+                            {interaction.severity}
+                          </Badge>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">
+                              {interaction.drug1} + {interaction.drug2}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{interaction.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Validity & Refills */}
             <div className="grid grid-cols-2 gap-4">
@@ -409,7 +649,7 @@ export function NewPrescriptionForm({
                 Cancel
               </Button>
               <Button 
-                onClick={() => createMutation.mutate()} 
+                onClick={handleSubmitClick} 
                 disabled={!canSubmit || createMutation.isPending}
                 className="gap-2"
               >
@@ -480,5 +720,6 @@ export function NewPrescriptionForm({
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
