@@ -4,14 +4,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
-  Users,
-  Calendar,
+  UserRound,
+  CalendarCheck,
   Pill,
-  AlertTriangle,
-  TrendingUp,
-  Activity,
-  Heart,
-  DollarSign,
+  Siren,
+  ChartLine,
+  Gauge,
+  Droplet,
+  IndianRupee,
 } from 'lucide-react';
 import {
   BarChart,
@@ -88,7 +88,7 @@ export default function Analytics() {
         <MetricCard
           title="Total Patients"
           value={data?.totalPatients}
-          icon={Users}
+          icon={UserRound}
           color="primary"
           isLoading={isLoading}
           subtitle={`${data?.patientsWithConditions || 0} with chronic conditions`}
@@ -96,7 +96,7 @@ export default function Analytics() {
         <MetricCard
           title="Appointments (30d)"
           value={data?.totalAppointments}
-          icon={Calendar}
+          icon={CalendarCheck}
           color="chart-2"
           isLoading={isLoading}
           subtitle={`${data?.appointmentStatus.completed || 0} completed`}
@@ -112,7 +112,7 @@ export default function Analytics() {
         <MetricCard
           title="Emergencies (30d)"
           value={data?.totalEmergencies}
-          icon={AlertTriangle}
+          icon={Siren}
           color="destructive"
           isLoading={isLoading}
           subtitle={`${data?.emergencySeverity.critical || 0} critical`}
@@ -136,7 +136,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <ChartLine className="h-5 w-5 text-primary" />
                   Patient Registrations
                 </CardTitle>
                 <CardDescription>New patient registrations over the last 14 days</CardDescription>
@@ -181,7 +181,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
+                  <CalendarCheck className="h-5 w-5 text-primary" />
                   Appointment Status
                 </CardTitle>
                 <CardDescription>Distribution of appointment outcomes (last 30 days)</CardDescription>
@@ -229,7 +229,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  <Siren className="h-5 w-5 text-destructive" />
                   Emergency Severity
                 </CardTitle>
                 <CardDescription>Breakdown by severity level (last 30 days)</CardDescription>
@@ -268,7 +268,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-destructive" />
+                  <Droplet className="h-5 w-5 text-destructive" />
                   Blood Group Distribution
                 </CardTitle>
                 <CardDescription>Patient blood type breakdown</CardDescription>
@@ -356,7 +356,7 @@ export default function Analytics() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <IndianRupee className="h-5 w-5 text-primary" />
                 Monthly Revenue Trend
               </CardTitle>
               <CardDescription>
@@ -437,7 +437,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
+                  <IndianRupee className="h-5 w-5 text-primary" />
                   Invoice Status Distribution
                 </CardTitle>
                 <CardDescription>Breakdown of invoice payment status</CardDescription>
@@ -552,7 +552,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
+                  <UserRound className="h-5 w-5 text-primary" />
                   Gender Distribution
                 </CardTitle>
                 <CardDescription>Breakdown of patients by gender</CardDescription>
@@ -597,7 +597,7 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
+                  <Gauge className="h-5 w-5 text-primary" />
                   Age Distribution
                 </CardTitle>
                 <CardDescription>Patient age groups</CardDescription>

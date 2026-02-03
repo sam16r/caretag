@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Users, TrendingUp, Activity, MapPin } from 'lucide-react';
+import { UserRound, HeartPulse, Stethoscope, CalendarClock } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -107,7 +107,7 @@ export function PatientAnalytics() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <Users className="h-8 w-8 text-primary" />
+              <UserRound className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Patients</p>
                 <p className="text-3xl font-bold">{stats.total}</p>
@@ -118,7 +118,7 @@ export function PatientAnalytics() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <Activity className="h-8 w-8 text-amber-500" />
+              <HeartPulse className="h-8 w-8 text-chart-4" />
               <div>
                 <p className="text-sm text-muted-foreground">With Allergies</p>
                 <p className="text-3xl font-bold">{stats.withAllergies}</p>
@@ -129,7 +129,7 @@ export function PatientAnalytics() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-8 w-8 text-destructive" />
+              <Stethoscope className="h-8 w-8 text-destructive" />
               <div>
                 <p className="text-sm text-muted-foreground">Chronic Conditions</p>
                 <p className="text-3xl font-bold">{stats.withConditions}</p>
@@ -140,7 +140,7 @@ export function PatientAnalytics() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <MapPin className="h-8 w-8 text-green-500" />
+              <CalendarClock className="h-8 w-8 text-chart-2" />
               <div>
                 <p className="text-sm text-muted-foreground">Appointments (Month)</p>
                 <p className="text-3xl font-bold">{stats.appointmentsThisMonth}</p>
