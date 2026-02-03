@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users,
   Calendar,
@@ -14,6 +18,8 @@ import {
   ArrowRight,
   FileText,
   Settings,
+  UserCheck,
+  Clock,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -28,6 +34,7 @@ import {
 } from 'recharts';
 import { useDashboardStats, useRecentPatients } from '@/hooks/useDashboardData';
 import { format } from 'date-fns';
+import { DoctorVerificationPanel } from '@/components/admin/DoctorVerificationPanel';
 
 // Mock data for charts (would be real data in production)
 const opdTrendData = [
@@ -56,11 +63,57 @@ const prescriptionData = [
 
 export function AdminDashboard() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentPatients, isLoading: patientsLoading } = useRecentPatients(4);
 
+  // Fetch pending verifications count
+  const { data: pendingVerifications } = useQuery({
+    queryKey: ['pending-verifications-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('verification_status', 'pending');
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="overview" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="verification" className="gap-2 relative">
+              <UserCheck className="h-4 w-4" />
+              Doctor Verification
+              {pendingVerifications && pendingVerifications > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {pendingVerifications}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => navigate('/reports')} className="gap-2 shadow-sm">
+              <FileText className="h-4 w-4" />
+              View Reports
+            </Button>
+            <Button onClick={() => navigate('/settings')} className="gap-2 shadow-sm">
+              <Settings className="h-4 w-4" />
+              System Settings
+            </Button>
+          </div>
+        </div>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -352,9 +405,18 @@ export function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate('/settings')}>
-              <Settings className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">System Settings</span>
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2 relative" 
+              onClick={() => setActiveTab('verification')}
+            >
+              <UserCheck className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium">Verify Doctors</span>
+              {pendingVerifications && pendingVerifications > 0 && (
+                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {pendingVerifications}
+                </Badge>
+              )}
             </Button>
             <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate('/reports')}>
               <FileText className="h-5 w-5 text-muted-foreground" />
@@ -365,12 +427,19 @@ export function AdminDashboard() {
               <span className="text-sm font-medium">Manage Patients</span>
             </Button>
             <Button variant="outline" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate('/settings')}>
-              <Activity className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">Audit Logs</span>
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">System Settings</span>
             </Button>
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Verification Tab */}
+        <TabsContent value="verification">
+          <DoctorVerificationPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
