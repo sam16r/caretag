@@ -15,9 +15,15 @@ import { Progress } from '@/components/ui/progress';
 interface CareTagScannerProps {
   onPatientFound?: (patient: any) => void;
   showQuickActions?: boolean;
+  /** Probability (0-1) of finding an existing patient during demo scan. Default: 0.7 (70%) */
+  existingPatientProbability?: number;
 }
 
-export function CareTagScanner({ onPatientFound, showQuickActions = true }: CareTagScannerProps) {
+export function CareTagScanner({ 
+  onPatientFound, 
+  showQuickActions = true,
+  existingPatientProbability = 0.7 
+}: CareTagScannerProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [manualId, setManualId] = useState('');
@@ -136,8 +142,8 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
   const handleSimulatedScanComplete = async () => {
     setIsSimulating(false);
     
-    // 70% chance to find existing patient, 30% new patient
-    const shouldFindExisting = Math.random() < 0.7;
+    // Use configurable probability for existing vs new patient
+    const shouldFindExisting = Math.random() < existingPatientProbability;
     
     if (shouldFindExisting) {
       // Fetch a random existing patient
@@ -500,7 +506,7 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
           )}
 
           <p className="text-xs text-muted-foreground text-center">
-            Demo mode: 70% chance existing patient, 30% new patient prompt
+            Demo mode: {Math.round(existingPatientProbability * 100)}% existing patient, {Math.round((1 - existingPatientProbability) * 100)}% new patient
           </p>
         </div>
       </DialogContent>
