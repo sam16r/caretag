@@ -477,9 +477,6 @@ export default function ScanCareTag() {
               <X className="h-4 w-4" />
               Cancel
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Demo: {Math.round(DEMO_EXISTING_PATIENT_PROBABILITY * 100)}% existing, {Math.round((1 - DEMO_EXISTING_PATIENT_PROBABILITY) * 100)}% new patient
-            </p>
           </>
         )}
 
