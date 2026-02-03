@@ -51,16 +51,16 @@ export function AppHeader() {
       {hasActiveSession && currentSession && (
         <div 
           onClick={() => navigate(`/patients/${currentSession.patient_id}`)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-destructive/10 border border-destructive/20 cursor-pointer hover:bg-destructive/15 transition-colors"
         >
-          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
           <div className="flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5 text-primary" />
-            <span className="text-sm font-medium text-primary truncate max-w-[120px] lg:max-w-[180px]">
+            <User className="h-3.5 w-3.5 text-destructive" />
+            <span className="text-sm font-medium text-destructive truncate max-w-[120px] lg:max-w-[180px]">
               {currentSession.patients?.full_name || 'Patient'}
             </span>
           </div>
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/30 text-primary">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-destructive/30 text-destructive">
             Active
           </Badge>
         </div>
