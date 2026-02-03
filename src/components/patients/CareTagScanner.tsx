@@ -4,12 +4,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScanLine, Camera, X, User, AlertCircle, Smartphone, Plus, FileText, Pill, Activity, FlaskConical } from 'lucide-react';
+import { ScanLine, Camera, X, User, AlertCircle, Smartphone, Plus, FileText, Pill, Activity, FlaskConical, Timer, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNfcScanner } from '@/hooks/useNfcScanner';
 import { useQrScanner } from '@/hooks/useQrScanner';
 import { useAccessSession } from '@/hooks/useAccessSession';
+import { Progress } from '@/components/ui/progress';
 
 interface CareTagScannerProps {
   onPatientFound?: (patient: any) => void;
@@ -23,7 +24,11 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
   const [isSearching, setIsSearching] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [scanMode, setScanMode] = useState<'idle' | 'nfc' | 'qr'>('idle');
+  const [scanMode, setScanMode] = useState<'idle' | 'nfc' | 'qr' | 'simulated'>('idle');
+  const [simulatedTimer, setSimulatedTimer] = useState(5);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [showNewPatientPrompt, setShowNewPatientPrompt] = useState(false);
+  const [generatedCaretagId, setGeneratedCaretagId] = useState<string | null>(null);
   
   // Access session management
   const { startSession, isStarting, hasActiveSession } = useAccessSession(patient?.id);
@@ -96,8 +101,85 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
       stopNfcScan();
     } else if (scanMode === 'qr') {
       await stopQrScan();
+    } else if (scanMode === 'simulated') {
+      setIsSimulating(false);
     }
     setScanMode('idle');
+    setSimulatedTimer(5);
+  };
+
+  // Simulated scan with 5-second timer
+  const handleSimulatedScan = async () => {
+    setScanMode('simulated');
+    setIsSimulating(true);
+    setSimulatedTimer(5);
+    setError(null);
+    setPatient(null);
+    setShowNewPatientPrompt(false);
+  };
+
+  // Timer effect for simulated scan
+  useEffect(() => {
+    if (!isSimulating || scanMode !== 'simulated') return;
+
+    if (simulatedTimer > 0) {
+      const timer = setTimeout(() => {
+        setSimulatedTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Timer finished - decide outcome
+      handleSimulatedScanComplete();
+    }
+  }, [isSimulating, simulatedTimer, scanMode]);
+
+  const handleSimulatedScanComplete = async () => {
+    setIsSimulating(false);
+    
+    // 70% chance to find existing patient, 30% new patient
+    const shouldFindExisting = Math.random() < 0.7;
+    
+    if (shouldFindExisting) {
+      // Fetch a random existing patient
+      try {
+        const { data: patients, error: queryError } = await supabase
+          .from('patients')
+          .select('*')
+          .limit(10);
+
+        if (queryError) throw queryError;
+
+        if (patients && patients.length > 0) {
+          const randomPatient = patients[Math.floor(Math.random() * patients.length)];
+          setPatient(randomPatient);
+          toast.success(`Found patient: ${randomPatient.full_name}`);
+          if (onPatientFound) {
+            onPatientFound(randomPatient);
+          }
+        } else {
+          // No patients exist, show new patient prompt
+          const newId = `CT-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+          setGeneratedCaretagId(newId);
+          setShowNewPatientPrompt(true);
+        }
+      } catch (err) {
+        console.error('Error fetching patient:', err);
+        setError('Failed to complete scan. Please try again.');
+      }
+    } else {
+      // Show new patient prompt
+      const newId = `CT-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+      setGeneratedCaretagId(newId);
+      setShowNewPatientPrompt(true);
+      toast.info('New CareTag detected! Register patient to continue.');
+    }
+    
+    setScanMode('idle');
+  };
+
+  const goToNewPatient = () => {
+    setOpen(false);
+    navigate(`/patients/new?caretag=${generatedCaretagId}`);
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -171,6 +253,10 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
       setError(null);
       setManualId('');
       setScanMode('idle');
+      setIsSimulating(false);
+      setSimulatedTimer(5);
+      setShowNewPatientPrompt(false);
+      setGeneratedCaretagId(null);
     }
   }, [open, stopNfcScan, stopQrScan]);
 
@@ -233,6 +319,25 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
                   Cancel
                 </Button>
               </div>
+            ) : scanMode === 'simulated' ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
+                <div className="relative">
+                  <div className="h-24 w-24 rounded-full border-4 border-primary/20 flex items-center justify-center">
+                    <span className="text-4xl font-bold text-primary">{simulatedTimer}</span>
+                  </div>
+                  <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                </div>
+                <div className="w-full max-w-[200px]">
+                  <Progress value={(5 - simulatedTimer) * 20} className="h-2" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Scanning CareTag...
+                </p>
+                <Button variant="outline" onClick={handleStopScan} className="gap-2">
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </div>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
                 <ScanLine className="h-16 w-16 text-muted-foreground/50" />
@@ -240,13 +345,18 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
                   Choose a scanning method
                 </p>
                 <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                  {/* Demo/Simulated Scan - Primary option */}
+                  <Button onClick={handleSimulatedScan} className="gap-2 w-full">
+                    <Timer className="h-4 w-4" />
+                    Demo Scan (5s)
+                  </Button>
                   {nfcSupported && (
                     <Button onClick={handleStartNfc} variant="outline" className="gap-2 w-full">
                       <Smartphone className="h-4 w-4" />
                       NFC Scan
                     </Button>
                   )}
-                  <Button onClick={handleStartQr} className="gap-2 w-full">
+                  <Button onClick={handleStartQr} variant="outline" className="gap-2 w-full">
                     <Camera className="h-4 w-4" />
                     QR / Barcode Scan
                   </Button>
@@ -363,8 +473,34 @@ export function CareTagScanner({ onPatientFound, showQuickActions = true }: Care
             </Card>
           )}
 
+          {/* New Patient Prompt */}
+          {showNewPatientPrompt && !patient && (
+            <Card className="border-warning/30 bg-warning/5">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center">
+                    <UserPlus className="h-6 w-6 text-warning" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">New CareTag Detected</p>
+                    <p className="text-sm text-muted-foreground">
+                      ID: {generatedCaretagId} • Not registered
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This CareTag is not linked to any patient. Register a new patient to continue.
+                </p>
+                <Button onClick={goToNewPatient} className="w-full gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Register New Patient
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <p className="text-xs text-muted-foreground text-center">
-            Note: Camera-based QR scanning requires a compatible device and browser permissions.
+            Demo mode: 70% chance existing patient, 30% new patient prompt
           </p>
         </div>
       </DialogContent>
