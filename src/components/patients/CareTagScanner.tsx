@@ -4,17 +4,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScanLine, Camera, X, User, AlertCircle, Smartphone } from 'lucide-react';
+import { ScanLine, Camera, X, User, AlertCircle, Smartphone, Plus, FileText, Pill, Activity, FlaskConical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNfcScanner } from '@/hooks/useNfcScanner';
 import { useQrScanner } from '@/hooks/useQrScanner';
+import { useAccessSession } from '@/hooks/useAccessSession';
 
 interface CareTagScannerProps {
   onPatientFound?: (patient: any) => void;
+  showQuickActions?: boolean;
 }
 
-export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
+export function CareTagScanner({ onPatientFound, showQuickActions = true }: CareTagScannerProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [manualId, setManualId] = useState('');
@@ -22,6 +24,9 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
   const [patient, setPatient] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'idle' | 'nfc' | 'qr'>('idle');
+  
+  // Access session management
+  const { startSession, isStarting, hasActiveSession } = useAccessSession(patient?.id);
 
   const searchPatient = useCallback(async (caretagId: string) => {
     if (!caretagId.trim()) return;
@@ -100,10 +105,61 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
     searchPatient(manualId);
   };
 
+  const handleStartSession = async () => {
+    if (patient) {
+      try {
+        await startSession(patient.id);
+        toast.success('Access session started');
+      } catch (err) {
+        console.error('Failed to start session:', err);
+      }
+    }
+  };
+
   const goToPatient = () => {
     if (patient) {
       setOpen(false);
       navigate(`/patients/${patient.id}`);
+    }
+  };
+
+  const goToNewPrescription = async () => {
+    if (patient) {
+      if (!hasActiveSession) {
+        await handleStartSession();
+      }
+      setOpen(false);
+      navigate(`/patients/${patient.id}?tab=prescriptions&action=new`);
+    }
+  };
+
+  const goToAddRecord = async () => {
+    if (patient) {
+      if (!hasActiveSession) {
+        await handleStartSession();
+      }
+      setOpen(false);
+      navigate(`/patients/${patient.id}?tab=history&action=new`);
+    }
+  };
+
+  const goToLabResults = async () => {
+    if (patient) {
+      if (!hasActiveSession) {
+        await handleStartSession();
+      }
+      setOpen(false);
+      navigate(`/patients/${patient.id}?tab=lab-results`);
+    }
+  };
+
+  const goToVitals = async () => {
+    if (patient) {
+      if (!hasActiveSession) {
+        await handleStartSession();
+      }
+      setOpen(false);
+      navigate(`/patients/${patient.id}?tab=vitals`);
     }
   };
 
@@ -235,11 +291,11 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
 
           {/* Patient found */}
           {patient && (
-            <Card className="border-success bg-success/10">
-              <CardContent className="p-4">
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="p-4 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-success/20 flex items-center justify-center">
-                    <User className="h-6 w-6 text-success" />
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{patient.full_name}</p>
@@ -248,9 +304,60 @@ export function CareTagScanner({ onPatientFound }: CareTagScannerProps) {
                     </p>
                   </div>
                 </div>
-                <Button onClick={goToPatient} className="w-full mt-4 gap-2">
-                  <User className="h-4 w-4" />
-                  View Patient Profile
+
+                {/* Quick Actions */}
+                {showQuickActions && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Quick Actions</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={goToNewPrescription} 
+                        className="gap-2 justify-start"
+                        disabled={isStarting}
+                      >
+                        <Pill className="h-4 w-4 text-primary" />
+                        New Prescription
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={goToAddRecord} 
+                        className="gap-2 justify-start"
+                        disabled={isStarting}
+                      >
+                        <Plus className="h-4 w-4 text-primary" />
+                        Add Record
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={goToLabResults} 
+                        className="gap-2 justify-start"
+                        disabled={isStarting}
+                      >
+                        <FlaskConical className="h-4 w-4 text-primary" />
+                        Lab Results
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={goToVitals} 
+                        className="gap-2 justify-start"
+                        disabled={isStarting}
+                      >
+                        <Activity className="h-4 w-4 text-primary" />
+                        Vitals
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* View Full Profile */}
+                <Button onClick={goToPatient} className="w-full gap-2" disabled={isStarting}>
+                  <FileText className="h-4 w-4" />
+                  {isStarting ? 'Starting Session...' : 'View Full Patient Record'}
                 </Button>
               </CardContent>
             </Card>
