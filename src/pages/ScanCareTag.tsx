@@ -1,14 +1,16 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wifi, CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, User, UserPlus, X, Keyboard, Search, Loader2, ShieldCheck, Camera, Smartphone, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAccessSession } from '@/hooks/useAccessSession';
+import { useQrScanner } from '@/hooks/useQrScanner';
+import { useNfcScanner } from '@/hooks/useNfcScanner';
 
-type ScanState = 'scanning' | 'manual' | 'detected' | 'loading' | 'creating' | 'session' | 'redirecting';
+type ScanState = 'idle' | 'qr' | 'nfc' | 'manual' | 'detected' | 'loading' | 'creating' | 'session' | 'redirecting';
 
 const generateCareTagId = () => {
   const year = new Date().getFullYear();
@@ -43,8 +45,6 @@ const generateRandomPatient = () => {
 const playDetectionSound = () => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    // Create two oscillators for a pleasant two-tone "ding"
     const oscillator1 = audioContext.createOscillator();
     const oscillator2 = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -53,14 +53,12 @@ const playDetectionSound = () => {
     oscillator2.connect(gainNode);
     gainNode.connect(audioContext.destination);
     
-    // Pleasant frequencies (C5 and E5 - major third)
     oscillator1.frequency.setValueAtTime(523.25, audioContext.currentTime);
     oscillator2.frequency.setValueAtTime(659.25, audioContext.currentTime);
     
     oscillator1.type = 'sine';
     oscillator2.type = 'sine';
     
-    // Quick fade in and out for a soft sound
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.05);
     gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
@@ -74,11 +72,9 @@ const playDetectionSound = () => {
   }
 };
 
-// Trigger haptic feedback if available
 const triggerHapticFeedback = () => {
   try {
     if ('vibrate' in navigator) {
-      // Short double vibration pattern
       navigator.vibrate([50, 30, 50]);
     }
   } catch (e) {
@@ -88,79 +84,57 @@ const triggerHapticFeedback = () => {
 
 export default function ScanCareTag() {
   const navigate = useNavigate();
-  const [scanState, setScanState] = useState<ScanState>('scanning');
+  const [scanState, setScanState] = useState<ScanState>('idle');
   const [patient, setPatient] = useState<{ id: string; full_name: string; caretag_id: string; blood_group?: string | null } | null>(null);
   const [isNewPatient, setIsNewPatient] = useState(false);
   const [manualId, setManualId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const simulationCancelledRef = useRef(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const processingRef = useRef(false);
   const { startSession } = useAccessSession();
 
-  // Helper to start session before navigating
-  const startSessionAndNavigate = async (patientId: string) => {
+  // Process scanned CareTag ID
+  const processScannedId = useCallback(async (caretagId: string) => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+
     try {
-      setScanState('session');
-      await startSession(patientId);
-      toast.success('Access session started');
+      playDetectionSound();
+      triggerHapticFeedback();
+      setScanState('detected');
       await new Promise(resolve => setTimeout(resolve, 600));
-      setScanState('redirecting');
-      await new Promise(resolve => setTimeout(resolve, 400));
-      navigate(`/patients/${patientId}`);
-    } catch (error) {
-      console.error('Failed to start session:', error);
-      toast.error('Failed to start access session');
-      navigate(`/patients/${patientId}`);
-    }
-  };
-  // Cancel simulation when switching to manual mode
-  const switchToManual = useCallback(() => {
-    simulationCancelledRef.current = true;
-    setScanState('manual');
-  }, []);
 
-  // Resume scanning mode
-  const switchToScanning = useCallback(() => {
-    simulationCancelledRef.current = false;
-    setScanState('scanning');
-  }, []);
+      setScanState('loading');
 
-  const onTagDetected = useCallback(() => {
-    playDetectionSound();
-    triggerHapticFeedback();
-  }, []);
-
-  const handleManualSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualId.trim()) return;
-
-    setIsSearching(true);
-    try {
       // Search for existing patient
       const { data: existingPatient, error } = await supabase
         .from('patients')
         .select('id, full_name, caretag_id, blood_group')
-        .eq('caretag_id', manualId.trim().toUpperCase())
+        .eq('caretag_id', caretagId.trim().toUpperCase())
         .maybeSingle();
 
       if (error) throw error;
 
-      onTagDetected();
-      setScanState('detected');
-      await new Promise(resolve => setTimeout(resolve, 600));
-
       if (existingPatient) {
         setPatient(existingPatient);
         setIsNewPatient(false);
-        setScanState('loading');
         toast.success('Patient found!');
         await new Promise(resolve => setTimeout(resolve, 800));
-        await startSessionAndNavigate(existingPatient.id);
+        
+        // Start session
+        setScanState('session');
+        await startSession(existingPatient.id);
+        toast.success('Access session started');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        setScanState('redirecting');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        navigate(`/patients/${existingPatient.id}`);
       } else {
         // Create new patient
         setScanState('creating');
         setIsNewPatient(true);
         const newPatientData = generateRandomPatient();
-        newPatientData.caretag_id = manualId.trim().toUpperCase();
+        newPatientData.caretag_id = caretagId.trim().toUpperCase();
         
         const { data: newPatient, error: insertError } = await supabase
           .from('patients')
@@ -174,111 +148,100 @@ export default function ScanCareTag() {
         toast.success('New patient registered!');
         setScanState('loading');
         await new Promise(resolve => setTimeout(resolve, 800));
-        await startSessionAndNavigate(newPatient.id);
+        
+        // Start session
+        setScanState('session');
+        await startSession(newPatient.id);
+        toast.success('Access session started');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        setScanState('redirecting');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        navigate(`/patients/${newPatient.id}`);
       }
     } catch (err) {
-      console.error('Manual search error:', err);
-      toast.error('Failed to search for patient');
-      setScanState('manual');
+      console.error('Scan processing error:', err);
+      toast.error('Failed to process CareTag');
+      setScanState('idle');
     } finally {
-      setIsSearching(false);
+      processingRef.current = false;
     }
+  }, [navigate, startSession]);
+
+  // QR Scanner hook
+  const {
+    isScanning: qrScanning,
+    error: qrError,
+    startScan: startQrScan,
+    stopScan: stopQrScan,
+  } = useQrScanner(processScannedId);
+
+  // NFC Scanner hook
+  const {
+    isSupported: nfcSupported,
+    isScanning: nfcScanning,
+    error: nfcError,
+    startScan: startNfcScan,
+    stopScan: stopNfcScan,
+  } = useNfcScanner(processScannedId);
+
+  // Start QR scanning
+  const handleStartQr = async () => {
+    setScanState('qr');
+    setScanError(null);
+    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for element to mount
+    await startQrScan('qr-reader');
   };
 
-  useEffect(() => {
-    const runScanSimulation = async () => {
-      await new Promise(resolve => setTimeout(resolve, 4000));
-      
-      // Stop if user switched to manual mode
-      if (simulationCancelledRef.current) return;
-      
-      setScanState('detected');
-      onTagDetected();
-      await new Promise(resolve => setTimeout(resolve, 600));
-      
-      if (simulationCancelledRef.current) return;
-      setScanState('loading');
+  // Start NFC scanning
+  const handleStartNfc = async () => {
+    setScanState('nfc');
+    setScanError(null);
+    await startNfcScan();
+  };
 
-      try {
-        const isNew = Math.random() > 0.3;
-        
-        if (isNew) {
-          if (simulationCancelledRef.current) return;
-          setScanState('creating');
-          setIsNewPatient(true);
-          
-          const newPatientData = generateRandomPatient();
-          const { data: newPatient, error: insertError } = await supabase
-            .from('patients')
-            .insert(newPatientData)
-            .select('id, full_name, caretag_id, blood_group')
-            .single();
-          
-          if (insertError) throw insertError;
-          if (simulationCancelledRef.current) return;
-          
-          setPatient(newPatient);
-          toast.success('New patient registered!');
-          
-          await new Promise(resolve => setTimeout(resolve, 800));
-          if (simulationCancelledRef.current) return;
-          await startSessionAndNavigate(newPatient.id);
-        } else {
-          const { data, error } = await supabase
-            .from('patients')
-            .select('id, full_name, caretag_id, blood_group')
-            .limit(10);
-
-          if (error) throw error;
-          if (simulationCancelledRef.current) return;
-
-          if (data && data.length > 0) {
-            const randomPatient = data[Math.floor(Math.random() * data.length)];
-            setPatient(randomPatient);
-            toast.success('Patient found!');
-            
-            await new Promise(resolve => setTimeout(resolve, 800));
-            if (simulationCancelledRef.current) return;
-            await startSessionAndNavigate(randomPatient.id);
-          } else {
-            if (simulationCancelledRef.current) return;
-            setScanState('creating');
-            setIsNewPatient(true);
-            
-            const newPatientData = generateRandomPatient();
-            const { data: newPatient, error: insertError } = await supabase
-              .from('patients')
-              .insert(newPatientData)
-              .select('id, full_name, caretag_id, blood_group')
-              .single();
-            
-            if (insertError) throw insertError;
-            if (simulationCancelledRef.current) return;
-            
-            setPatient(newPatient);
-            toast.success('New patient registered!');
-            
-            await new Promise(resolve => setTimeout(resolve, 800));
-            if (simulationCancelledRef.current) return;
-            await startSessionAndNavigate(newPatient.id);
-          }
-        }
-      } catch (err) {
-        console.error('Scan error:', err);
-        if (!simulationCancelledRef.current) {
-          toast.error('Failed to process CareTag');
-          navigate(-1);
-        }
-      }
-    };
-
-    // Only run simulation when in scanning mode
-    if (scanState === 'scanning') {
-      runScanSimulation();
+  // Stop any active scan
+  const handleStopScan = async () => {
+    if (scanState === 'qr') {
+      await stopQrScan();
+    } else if (scanState === 'nfc') {
+      stopNfcScan();
     }
-  }, [navigate, scanState, onTagDetected]);
+    setScanState('idle');
+  };
 
-  const isActive = scanState === 'scanning';
+  // Switch to manual mode
+  const switchToManual = () => {
+    handleStopScan();
+    setScanState('manual');
+  };
+
+  // Switch back to idle
+  const switchToIdle = () => {
+    setScanState('idle');
+  };
+
+  // Handle manual search
+  const handleManualSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualId.trim()) return;
+    setIsSearching(true);
+    await processScannedId(manualId.trim());
+    setIsSearching(false);
+  };
+
+  // Update error state from scanners
+  useEffect(() => {
+    setScanError(qrError || nfcError || null);
+  }, [qrError, nfcError]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopQrScan();
+      stopNfcScan();
+    };
+  }, []);
+
   const isSuccess = scanState === 'detected' || scanState === 'loading' || scanState === 'redirecting' || scanState === 'session';
   const isCreating = scanState === 'creating';
   const isStartingSession = scanState === 'session';
@@ -286,11 +249,14 @@ export default function ScanCareTag() {
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
       {/* Close button */}
-      {(scanState === 'scanning' || scanState === 'manual') && (
+      {(scanState === 'idle' || scanState === 'manual' || scanState === 'qr' || scanState === 'nfc') && (
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            handleStopScan();
+            navigate(-1);
+          }}
           className="absolute top-6 right-6 h-10 w-10 rounded-full text-muted-foreground hover:text-foreground"
         >
           <X className="h-5 w-5" />
@@ -298,182 +264,196 @@ export default function ScanCareTag() {
       )}
 
       <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
-        {/* Scanner visual */}
-        <div className="relative flex items-center justify-center">
-          {/* Outer rings - hide in manual mode */}
-          {scanState !== 'manual' && (
-            <>
-              <div className={`absolute w-40 h-40 rounded-full border-2 transition-all duration-500 ${
-                isActive ? 'border-primary/30 animate-ping' : isSuccess ? 'border-success/20' : 'border-primary/20'
-              }`} style={{ animationDuration: '2s' }} />
-              
-              <div className={`absolute w-32 h-32 rounded-full border-2 transition-all duration-500 ${
-                isActive ? 'border-primary/40 animate-pulse' : isSuccess ? 'border-success/30' : 'border-primary/30'
-              }`} />
-            </>
-          )}
+        {/* Idle state - choose scan method */}
+        {scanState === 'idle' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+              <Camera className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <div className="text-center space-y-3">
+              <h1 className="text-lg font-semibold text-foreground">Scan CareTag</h1>
+              <p className="text-sm text-muted-foreground">Choose a scanning method</p>
+            </div>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <Button onClick={handleStartQr} className="gap-2 w-full">
+                <Camera className="h-4 w-4" />
+                Scan QR Code
+              </Button>
+              {nfcSupported && (
+                <Button onClick={handleStartNfc} variant="outline" className="gap-2 w-full">
+                  <Smartphone className="h-4 w-4" />
+                  NFC Scan
+                </Button>
+              )}
+              <Button onClick={switchToManual} variant="ghost" className="gap-2 w-full text-muted-foreground">
+                <Keyboard className="h-4 w-4" />
+                Enter ID manually
+              </Button>
+            </div>
+          </>
+        )}
 
-          {/* Center circle */}
-          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-            scanState === 'manual' ? 'bg-muted' : isActive ? 'bg-primary/10' : isCreating ? 'bg-primary/10' : isStartingSession ? 'bg-primary/10' : isSuccess ? 'bg-success/10' : 'bg-muted'
-          }`}>
-            {scanState === 'manual' && (
-              <Keyboard className="h-10 w-10 text-muted-foreground" />
-            )}
-            {isActive && (
-              <Wifi className="h-10 w-10 text-primary animate-pulse" />
-            )}
-            {isCreating && (
-              <UserPlus className="h-10 w-10 text-primary" />
-            )}
-            {isStartingSession && (
-              <ShieldCheck className="h-10 w-10 text-primary animate-pulse" />
-            )}
-            {isSuccess && !isCreating && !isStartingSession && (
-              <CheckCircle2 className="h-10 w-10 text-success" />
-            )}
-          </div>
-        </div>
-
-        {/* Status content */}
-        <div className="text-center space-y-3">
-          {scanState === 'scanning' && (
-            <>
-              <h1 className="text-lg font-semibold text-foreground">
-                Ready to Scan
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Hold the CareTag near the device
-              </p>
+        {/* QR Scanning state */}
+        {scanState === 'qr' && (
+          <>
+            <div className="relative w-full aspect-square max-w-xs rounded-xl overflow-hidden bg-black">
+              <div id="qr-reader" className="w-full h-full" />
+              {/* Scan overlay corners */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="w-48 h-48 relative">
+                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl" />
+                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl" />
+                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl" />
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl" />
+                </div>
+              </div>
+            </div>
+            <div className="text-center space-y-3">
+              <h1 className="text-lg font-semibold text-foreground">Scanning QR Code</h1>
+              <p className="text-sm text-muted-foreground">Point camera at the CareTag QR code</p>
               <div className="flex items-center justify-center gap-1 pt-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={switchToManual}
-                className="mt-4 text-muted-foreground"
-              >
-                <Keyboard className="h-4 w-4 mr-2" />
-                Enter ID manually
-              </Button>
-            </>
-          )}
-
-          {scanState === 'manual' && (
-            <div className="w-full max-w-xs space-y-4">
-              <div className="text-center">
-                <h1 className="text-lg font-semibold text-foreground">
-                  Manual Entry
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Enter the CareTag ID printed on the tag
-                </p>
-              </div>
-              <form onSubmit={handleManualSearch} className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="caretag-id" className="text-sm">CareTag ID</Label>
-                  <Input
-                    id="caretag-id"
-                    placeholder="e.g., CT-2026-1234"
-                    value={manualId}
-                    onChange={(e) => setManualId(e.target.value.toUpperCase())}
-                    className="text-center font-mono"
-                    autoFocus
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full gap-2" 
-                  disabled={!manualId.trim() || isSearching}
-                >
-                  {isSearching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                  {isSearching ? 'Searching...' : 'Search Patient'}
-                </Button>
-              </form>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={switchToScanning}
-                className="w-full text-muted-foreground"
-              >
-                Back to scanning
-              </Button>
             </div>
-          )}
+            <Button variant="outline" onClick={handleStopScan} className="gap-2">
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+          </>
+        )}
 
-          {scanState === 'detected' && (
+        {/* NFC Scanning state */}
+        {scanState === 'nfc' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+              <Smartphone className="h-10 w-10 text-primary animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping" style={{ animationDuration: '2s' }} />
+            </div>
+            <div className="text-center space-y-3">
+              <h1 className="text-lg font-semibold text-foreground">Ready to Scan NFC</h1>
+              <p className="text-sm text-muted-foreground">Hold the CareTag near the device</p>
+              <div className="flex items-center justify-center gap-1 pt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+            <Button variant="outline" onClick={handleStopScan} className="gap-2">
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+          </>
+        )}
+
+        {/* Manual entry state */}
+        {scanState === 'manual' && (
+          <div className="w-full max-w-xs space-y-6">
+            <div className="relative w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center">
+              <Keyboard className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-lg font-semibold text-foreground">Manual Entry</h1>
+              <p className="text-sm text-muted-foreground">Enter the CareTag ID printed on the tag</p>
+            </div>
+            <form onSubmit={handleManualSearch} className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="caretag-id" className="text-sm">CareTag ID</Label>
+                <Input
+                  id="caretag-id"
+                  placeholder="e.g., CT-2026-1234"
+                  value={manualId}
+                  onChange={(e) => setManualId(e.target.value.toUpperCase())}
+                  className="text-center font-mono"
+                  autoFocus
+                />
+              </div>
+              <Button type="submit" className="w-full gap-2" disabled={!manualId.trim() || isSearching}>
+                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                {isSearching ? 'Searching...' : 'Search Patient'}
+              </Button>
+            </form>
+            <Button variant="ghost" size="sm" onClick={switchToIdle} className="w-full text-muted-foreground">
+              Back to scanning options
+            </Button>
+          </div>
+        )}
+
+        {/* Error display */}
+        {scanError && (scanState === 'qr' || scanState === 'nfc') && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p>{scanError}</p>
+          </div>
+        )}
+
+        {/* Detection success states */}
+        {scanState === 'detected' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-success/10 flex items-center justify-center">
+              <CheckCircle2 className="h-10 w-10 text-success" />
+            </div>
+            <h1 className="text-lg font-semibold text-success">Tag Detected</h1>
+          </>
+        )}
+
+        {scanState === 'creating' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+              <UserPlus className="h-10 w-10 text-primary" />
+            </div>
+            <div className="text-center space-y-2">
+              <h1 className="text-lg font-semibold text-foreground">Registering Patient</h1>
+              <p className="text-sm text-muted-foreground">Creating new record...</p>
+            </div>
+          </>
+        )}
+
+        {scanState === 'session' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+              <ShieldCheck className="h-10 w-10 text-primary animate-pulse" />
+            </div>
+            <div className="text-center space-y-2">
+              <h1 className="text-lg font-semibold text-foreground">Starting Session</h1>
+              <p className="text-sm text-muted-foreground">Securing access...</p>
+            </div>
+          </>
+        )}
+
+        {scanState === 'loading' && patient && (
+          <div className="space-y-4 text-center">
+            <div className="relative w-24 h-24 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+              <CheckCircle2 className="h-10 w-10 text-success" />
+            </div>
             <h1 className="text-lg font-semibold text-success">
-              Tag Detected
+              {isNewPatient ? 'Patient Registered' : 'Patient Found'}
             </h1>
-          )}
-
-          {scanState === 'creating' && (
-            <>
-              <h1 className="text-lg font-semibold text-foreground">
-                Registering Patient
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Creating new record...
-              </p>
-            </>
-          )}
-
-          {scanState === 'loading' && patient && (
-            <div className="space-y-4">
-              <h1 className="text-lg font-semibold text-success">
-                {isNewPatient ? 'Patient Registered' : 'Patient Found'}
-              </h1>
-              
-              <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
-                isNewPatient 
-                  ? 'bg-primary/5 border-primary/20' 
-                  : 'bg-success/5 border-success/20'
+            <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+              isNewPatient ? 'bg-primary/5 border-primary/20' : 'bg-success/5 border-success/20'
+            }`}>
+              <div className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${
+                isNewPatient ? 'bg-primary/10' : 'bg-success/10'
               }`}>
-                <div className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${
-                  isNewPatient ? 'bg-primary/10' : 'bg-success/10'
-                }`}>
-                  {isNewPatient ? (
-                    <UserPlus className="h-5 w-5 text-primary" />
-                  ) : (
-                    <User className="h-5 w-5 text-success" />
-                  )}
-                </div>
-                <div className="text-left min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-foreground truncate">{patient.full_name}</p>
-                    {isNewPatient && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
-                        NEW
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {patient.caretag_id}
-                    {patient.blood_group && <span className="ml-1.5">• {patient.blood_group}</span>}
-                  </p>
-                </div>
+                {isNewPatient ? <UserPlus className="h-5 w-5 text-primary" /> : <User className="h-5 w-5 text-success" />}
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-medium text-foreground truncate">{patient.full_name}</p>
+                <p className="text-xs text-muted-foreground font-mono">{patient.caretag_id}</p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {scanState === 'redirecting' && (
-            <>
-              <h1 className="text-lg font-semibold text-foreground">
-                Opening Record
-              </h1>
-              <div className="w-32 h-1 bg-muted rounded-full overflow-hidden mx-auto">
-                <div className="h-full bg-primary rounded-full animate-pulse w-full" />
-              </div>
-            </>
-          )}
-        </div>
+        {scanState === 'redirecting' && (
+          <>
+            <div className="relative w-24 h-24 rounded-full bg-success/10 flex items-center justify-center">
+              <Loader2 className="h-10 w-10 text-success animate-spin" />
+            </div>
+            <h1 className="text-lg font-semibold text-success">Opening Patient Record...</h1>
+          </>
+        )}
       </div>
     </div>
   );
