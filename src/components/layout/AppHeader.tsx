@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Moon, Sun, Search, ScanLine, Command } from 'lucide-react';
+import { Bell, Moon, Sun, Search, ScanLine, Command, User, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/hooks/useTheme';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsModal } from '@/components/shortcuts/KeyboardShortcutsModal';
+import { useActiveSessions } from '@/hooks/useAccessSession';
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ export function AppHeader() {
   const [searchQuery, setSearchQuery] = useState('');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const shortcuts = useKeyboardShortcuts(() => setShortcutsOpen(true));
+  const { data: activeSessions } = useActiveSessions();
+
+  const hasActiveSession = activeSessions && activeSessions.length > 0;
+  const currentSession = hasActiveSession ? activeSessions[0] : null;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +47,25 @@ export function AppHeader() {
 
       <div className="h-5 w-px bg-border hidden md:block" />
 
+      {/* Active Session Indicator */}
+      {hasActiveSession && currentSession && (
+        <div 
+          onClick={() => navigate(`/patients/${currentSession.patient_id}`)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+        >
+          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          <div className="flex items-center gap-1.5">
+            <User className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm font-medium text-primary truncate max-w-[120px] lg:max-w-[180px]">
+              {currentSession.patients?.full_name || 'Patient'}
+            </span>
+          </div>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/30 text-primary">
+            Active
+          </Badge>
+        </div>
+      )}
+
       {/* Search */}
       <form onSubmit={handleSearch} className="flex-1 max-w-md">
         <div className="relative">
@@ -61,15 +85,25 @@ export function AppHeader() {
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        {/* Scan Button */}
+        {/* Scan Button - disabled when session active */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/scan')}
-          className="gap-2 hidden lg:flex"
+          onClick={() => !hasActiveSession && navigate('/scan')}
+          className={`gap-2 hidden lg:flex ${hasActiveSession ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={hasActiveSession}
         >
-          <ScanLine className="h-4 w-4" />
-          Scan
+          {hasActiveSession ? (
+            <>
+              <Lock className="h-4 w-4" />
+              Scan
+            </>
+          ) : (
+            <>
+              <ScanLine className="h-4 w-4" />
+              Scan
+            </>
+          )}
         </Button>
 
         {/* Notifications */}
