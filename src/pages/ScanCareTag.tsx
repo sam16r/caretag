@@ -90,8 +90,50 @@ export default function ScanCareTag() {
   const [manualId, setManualId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [rfidBuffer, setRfidBuffer] = useState('');
+  const rfidTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const processingRef = useRef(false);
   const { startSession } = useAccessSession();
+
+  // Listen for RFID reader keyboard input (most USB RFID readers emulate keyboard)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if we're in manual mode with input focused or already processing
+      if (scanState === 'manual' || processingRef.current) return;
+      
+      // RFID readers typically send characters quickly followed by Enter
+      if (e.key === 'Enter' && rfidBuffer.length > 0) {
+        e.preventDefault();
+        const scannedId = rfidBuffer.trim();
+        setRfidBuffer('');
+        if (scannedId) {
+          processScannedId(scannedId);
+        }
+        return;
+      }
+
+      // Only accept alphanumeric and dash characters
+      if (/^[a-zA-Z0-9\-]$/.test(e.key)) {
+        setRfidBuffer(prev => prev + e.key);
+        
+        // Clear buffer after 100ms of no input (RFID readers are fast)
+        if (rfidTimeoutRef.current) {
+          clearTimeout(rfidTimeoutRef.current);
+        }
+        rfidTimeoutRef.current = setTimeout(() => {
+          setRfidBuffer('');
+        }, 100);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (rfidTimeoutRef.current) {
+        clearTimeout(rfidTimeoutRef.current);
+      }
+    };
+  }, [scanState, rfidBuffer]);
 
   // Process scanned CareTag ID
   const processScannedId = useCallback(async (caretagId: string) => {
@@ -264,32 +306,47 @@ export default function ScanCareTag() {
       )}
 
       <div className="flex flex-col items-center gap-8 px-6 max-w-sm w-full">
-        {/* Idle state - choose scan method */}
+        {/* Idle state - waiting for RFID scan */}
         {scanState === 'idle' && (
           <>
-            <div className="relative w-24 h-24 rounded-full bg-muted flex items-center justify-center">
-              <Camera className="h-10 w-10 text-muted-foreground" />
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-40 h-40 rounded-full border-2 border-primary/30 animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="absolute w-32 h-32 rounded-full border-2 border-primary/40 animate-pulse" />
+              <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <Smartphone className="h-10 w-10 text-primary animate-pulse" />
+              </div>
             </div>
             <div className="text-center space-y-3">
-              <h1 className="text-lg font-semibold text-foreground">Scan CareTag</h1>
-              <p className="text-sm text-muted-foreground">Choose a scanning method</p>
+              <h1 className="text-lg font-semibold text-foreground">Ready to Scan</h1>
+              <p className="text-sm text-muted-foreground">Tap the RFID CareTag on the reader</p>
+              <div className="flex items-center justify-center gap-1 pt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              {rfidBuffer && (
+                <p className="text-xs text-primary font-mono">Reading: {rfidBuffer}</p>
+              )}
             </div>
-            <div className="flex flex-col gap-3 w-full max-w-xs">
-              <Button onClick={handleStartQr} className="gap-2 w-full">
-                <Camera className="h-4 w-4" />
-                Scan QR Code
-              </Button>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
               {nfcSupported && (
                 <Button onClick={handleStartNfc} variant="outline" className="gap-2 w-full">
                   <Smartphone className="h-4 w-4" />
-                  NFC Scan
+                  Use Phone NFC
                 </Button>
               )}
+              <Button onClick={handleStartQr} variant="outline" className="gap-2 w-full">
+                <Camera className="h-4 w-4" />
+                Scan QR Code
+              </Button>
               <Button onClick={switchToManual} variant="ghost" className="gap-2 w-full text-muted-foreground">
                 <Keyboard className="h-4 w-4" />
                 Enter ID manually
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground text-center max-w-xs">
+              Using a USB RFID reader? Just tap the card — it will be detected automatically.
+            </p>
           </>
         )}
 
