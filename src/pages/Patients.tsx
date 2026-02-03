@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,13 +7,67 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ScanLine, Users, ArrowRight, Phone, ShieldAlert, Lock } from 'lucide-react';
-import { useActiveSessions } from '@/hooks/useAccessSession';
+import { Progress } from '@/components/ui/progress';
+import { Search, ScanLine, Users, ArrowRight, Phone, ShieldAlert, Lock, Loader2 } from 'lucide-react';
+import { useActiveSessions, useAccessSession } from '@/hooks/useAccessSession';
+import { toast } from 'sonner';
+
+const SCAN_DURATION = 5; // seconds
 
 export default function Patients() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const { data: activeSessions } = useActiveSessions();
+  
+  // Scanning state
+  const [scanningPatientId, setScanningPatientId] = useState<string | null>(null);
+  const [scanTimer, setScanTimer] = useState(SCAN_DURATION);
+  const [scanProgress, setScanProgress] = useState(0);
+  const { startSession, isStarting } = useAccessSession(scanningPatientId || undefined);
+
+  // Scan timer effect
+  useEffect(() => {
+    if (!scanningPatientId) return;
+
+    const interval = setInterval(() => {
+      setScanTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+      setScanProgress((prev) => Math.min(prev + (100 / SCAN_DURATION), 100));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [scanningPatientId]);
+
+  // Handle scan completion
+  useEffect(() => {
+    if (scanningPatientId && scanTimer === 0) {
+      handleScanComplete(scanningPatientId);
+    }
+  }, [scanTimer, scanningPatientId]);
+
+  const handlePatientCardClick = (patientId: string) => {
+    setScanningPatientId(patientId);
+    setScanTimer(SCAN_DURATION);
+    setScanProgress(0);
+  };
+
+  const handleScanComplete = async (patientId: string) => {
+    try {
+      await startSession(patientId);
+      toast.success('Session started successfully');
+      navigate(`/patients/${patientId}`);
+    } catch (error) {
+      console.error('Failed to start session:', error);
+      toast.error('Failed to start session');
+    } finally {
+      setScanningPatientId(null);
+    }
+  };
 
   // Get only limited patient info - no medical data
   const { data: patients, isLoading } = useQuery({
@@ -127,19 +181,21 @@ export default function Patients() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPatients.map((patient) => {
             const isActive = hasActiveSession(patient.id);
+            const isScanning = scanningPatientId === patient.id;
             return (
               <Card 
                 key={patient.id} 
                 className={`transition-all cursor-pointer hover:border-primary/50 hover:shadow-md ${
                   isActive ? 'border-primary/30' : ''
-                }`}
+                } ${isScanning ? 'border-primary ring-2 ring-primary/20' : ''}`}
                 onClick={() => {
+                  if (isScanning) return; // Already scanning this patient
                   if (isActive) {
                     // Already have session, go directly to patient
                     navigate(`/patients/${patient.id}`);
                   } else {
-                    // Need to scan - pass expected patient info
-                    navigate(`/scan?expect=${patient.caretag_id}&name=${encodeURIComponent(patient.full_name)}&id=${patient.id}`);
+                    // Start inline scan simulation
+                    handlePatientCardClick(patient.id);
                   }
                 }}
               >
@@ -180,16 +236,31 @@ export default function Patients() {
                     </div>
                   </div>
                   
-                  {/* Action hint */}
-                  <div className="flex justify-end mt-2">
-                    {isActive ? (
-                      <span className="text-xs text-primary flex items-center gap-1">
-                        View Records <ArrowRight className="h-3 w-3" />
-                      </span>
+                  {/* Action hint or Scanning progress */}
+                  <div className="mt-2">
+                    {isScanning ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-primary flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Scanning CareTag...
+                          </span>
+                          <span className="font-mono text-primary">{scanTimer}s</span>
+                        </div>
+                        <Progress value={scanProgress} className="h-1.5" />
+                      </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <ScanLine className="h-3 w-3" /> Scan to access
-                      </span>
+                      <div className="flex justify-end">
+                        {isActive ? (
+                          <span className="text-xs text-primary flex items-center gap-1">
+                            View Records <ArrowRight className="h-3 w-3" />
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <ScanLine className="h-3 w-3" /> Tap to scan
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </CardContent>
