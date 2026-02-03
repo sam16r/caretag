@@ -89,7 +89,7 @@ export function DoctorDashboard() {
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
-            onClick={() => navigate('/patients?scan=true')} 
+            onClick={() => navigate('/scan')} 
             className="gap-2"
           >
             <ScanLine className="h-4 w-4" />
@@ -154,7 +154,7 @@ export function DoctorDashboard() {
         <div className="flex flex-wrap gap-2">
           {[
             { label: 'New Patient', icon: Plus, onClick: () => navigate('/patients?action=new') },
-            { label: 'Scan CareTag', icon: ScanLine, onClick: () => navigate('/patients?scan=true') },
+            { label: 'Scan CareTag', icon: ScanLine, onClick: () => navigate('/scan') },
             { label: 'Prescription', icon: Stethoscope, onClick: () => navigate('/prescriptions?action=new') },
             { label: 'Schedule', icon: Calendar, onClick: () => navigate('/appointments?action=new') },
           ].map((action) => (
