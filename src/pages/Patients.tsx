@@ -130,12 +130,18 @@ export default function Patients() {
             return (
               <Card 
                 key={patient.id} 
-                className={`transition-all ${
-                  isActive 
-                    ? 'cursor-pointer hover:border-primary/50 hover:shadow-md border-primary/30' 
-                    : 'opacity-75'
+                className={`transition-all cursor-pointer hover:border-primary/50 hover:shadow-md ${
+                  isActive ? 'border-primary/30' : ''
                 }`}
-                onClick={() => isActive ? navigate(`/patients/${patient.id}`) : navigate('/scan')}
+                onClick={() => {
+                  if (isActive) {
+                    // Already have session, go directly to patient
+                    navigate(`/patients/${patient.id}`);
+                  } else {
+                    // Need to scan - pass expected patient info
+                    navigate(`/scan?expect=${patient.caretag_id}&name=${encodeURIComponent(patient.full_name)}&id=${patient.id}`);
+                  }
+                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
