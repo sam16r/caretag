@@ -44,12 +44,11 @@ export function useAccessSession(patientId?: string) {
     mutationFn: async (patientId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // First, close any existing active sessions for this patient
+      // First, close ALL existing active sessions for this doctor (not just this patient)
       await supabase
         .from('access_sessions')
         .update({ status: 'completed', ended_at: new Date().toISOString() })
         .eq('doctor_id', user.id)
-        .eq('patient_id', patientId)
         .eq('status', 'active');
 
       // Create new session
