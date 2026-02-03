@@ -271,7 +271,7 @@ export function DoctorDashboard() {
           <Button 
             variant="outline" 
             onClick={startDemoScan} 
-            className="gap-2"
+            className="gap-2 animate-pulse hover:animate-none border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
           >
             <ScanLine className="h-4 w-4" />
             Scan CareTag
