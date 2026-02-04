@@ -298,7 +298,7 @@ export function DoctorDashboard() {
             disabled={hasActiveSession}
             className={cn(
               "gap-2",
-              !hasActiveSession && "animate-pulse hover:animate-none border-primary/50 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+              !hasActiveSession && "animate-wave-border border-primary/50"
             )}
           >
             <ScanLine className="h-4 w-4" />

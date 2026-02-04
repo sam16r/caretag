@@ -244,6 +244,24 @@
     to { opacity: 1; }
   }
 
+  /* Wave border animation */
+  @keyframes wave-border {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 6px hsl(var(--primary) / 0);
+    }
+  }
+
+  .animate-wave-border {
+    animation: wave-border 2s ease-in-out infinite;
+  }
+
+  .animate-wave-border:hover {
+    animation-play-state: paused;
+  }
+
   /* Scrollbar styling */
   .scrollbar-thin {
     scrollbar-width: thin;
