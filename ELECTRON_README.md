@@ -10,11 +10,9 @@ This guide explains how to build and run CareTag as a Windows desktop applicatio
 
 ## Setup Instructions
 
-### Step 1: Export and Clone the Repository
+### Step 1: Clone the Repository
 
-1. In Lovable, go to **Settings** → **GitHub** → **Connect project**
-2. Create a new repository and push the code
-3. Clone the repository to your local machine:
+1. Clone the repository to your local machine:
    ```bash
    git clone <your-repo-url>
    cd <your-project-folder>

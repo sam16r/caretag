@@ -1,0 +1,7 @@
+{
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "devCommand": "bun dev",
+  "env": [],
+  "regions": ["iad1"]
+}
